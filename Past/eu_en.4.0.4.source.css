@@ -1,0 +1,436 @@
+/** Disable downvotes **/
+/* body.apollo .riot-apollo.voting ul.riot-voting li .down-vote {display:none!important} */
+
+/** Header background **/
+/* REmoving
+.apollo-header #breadcrumbs {
+	background-color:rgba(39,58,75,.6);
+	padding:9px 0px;
+	border:1px solid #005c70;
+	max-width:700px;
+	margin:auto;
+}
+.apollo-header .breadcrumb {
+	white-space:nowrap;
+	overflow:hidden;
+	text-overflow:ellipsis;
+} */
+/** Header link colors **/
+.apollo-header .breadcrumb li a, #breadcrumbs .site-name a, .apollo-header .controls a {color:#a3a3a3}
+.apollo-header .breadcrumb li:last-child, .controls .sorting, .apollo-header .controls a.active {color:#cfcfcf}
+.apollo-header h2,.apollo-header h2 a {color:#e3e0dd}
+
+/** Sets Primary Background Color **/
+.discussion.box.main.glow {background-color:#0e161db8}
+/** Color for clicked links **/
+.discussion-list-item .title .title-link:visited .title-span,#red-tracker .redtracker-list-item .row .title-box a.title-link:visited {color:#767676}
+/** Changes text color of bylines **/
+body .byline {color:#647f86!important}
+/** Sets the sticky box background color **/
+body.apollo .content .discussion-list.sticky {background-color:rgba(23, 47, 70, 0.9)}
+#discussion-list .total-votes{font-size:13px;}
+#discussion-list .up-vote, #discussion-list .down-vote{display:none!important}
+/** Sets the main discussion area background color **/
+body.apollo .content .discussion-list.box.main,#red-tracker {background-color:#121d27}
+/** Changes the actual color of the text in posts **/
+#discussion #content,.comments-header-container header .discuss,body .markdown-content,#red-tracker .redtracker-list-item .body .content {color:#afb0ac}
+
+/** Sets the color of the titles in the Discussions List **/
+.discussion-list-item .title .title-span,.discussion-title h1.title, #red-tracker .redtracker-list-item .row .title-box a.title-link {color:#b7b9b1}
+
+/** Adjusts Backdrop and Header **/
+/* body .backdrop .header {background-image:url(https://i.imgur.com/WBcjTvY.png)} */
+body .backdrop .magic {background-image:url(https://lolstatic-a.akamaihd.net/apollo/assets/boards_magic.jpg)}
+
+/** Sets styling for locked threads **/
+.locked {
+	background-image:url(https://boards.oce.leagueoflegends.com/images/sprite-master-f092f118123c35787b367f855ea0125b.png);
+	background-position:-204px -142px;
+	width:24px;
+	height:34px;
+	margin:0px auto;
+}
+/** Sets the border colors of all containers on Boards Index  and Threads **/
+body.apollo .content .discussion-list.sticky,body.apollo .content .discussion-list.box.main,.new-discussion-box.box,#search-form,#navigation-container,#board-info,.discussion.box.main.glow,#red-tracker {border:1px solid #063f4c}
+/** Larger effective text area for OP's **/
+#discussion #content div.body,.nested-comment .body-container .body span.high-quality {max-width:700px}
+/** Blockquote Changes **/
+.nested-comment .body-container .body blockquote {border:1px solid #607588;border-left:4px solid #607588}
+.nested-comment .body-container .body blockquote .markdown-meta-quoted {color:#465f65}
+
+/** Sets the bottom-border color of index items **/
+.discussion-list-item td, #red-tracker .redtracker-list-item .row,#red-tracker .redtracker-list-item .body {border-bottom:1px solid #263d53}
+
+/** Fixing the ugly freakin design of polls **/
+.riot_apollo[data-poll-widget=show] h1 {
+	font-family:"Beaufort for LoL",serif;
+	color:#cccdc8;
+	font-size:25px;
+	font-weight:500;
+	padding-bottom:10px;
+}
+/** ADJUSTING COMMENT COLOR SCHEMES **/
+/** ODD NUMBER COMMENTS **/
+.nested-comment,
+.nested-comment .list .nested-comment .list .nested-comment,
+.nested-comment .list .nested-comment .list .nested-comment .list .nested-comment .list .nested-comment,
+.nested-comment .list .nested-comment .list .nested-comment .list .nested-comment .list .nested-comment .list .nested-comment .list .nested-comment,
+.nested-comment .list .nested-comment .list .nested-comment .list .nested-comment .list .nested-comment .list .nested-comment .list .nested-comment .list .nested-comment .list .nested-comment,
+.nested-comment .list .nested-comment .list .nested-comment .list .nested-comment .list .nested-comment .list .nested-comment .list .nested-comment .list .nested-comment .list .nested-comment .list .nested-comment .list .nested-comment,
+.nested-comment .list .nested-comment .list .nested-comment .list .nested-comment .list .nested-comment .list .nested-comment .list .nested-comment .list .nested-comment .list .nested-comment .list .nested-comment .list .nested-comment .list .nested-comment .list .nested-comment
+{background-color:#10181f}
+/** EVEN NUMBER COMMENTS **/
+.nested-comment .list .nested-comment,
+.nested-comment .list .nested-comment .list .nested-comment .list .nested-comment,
+.nested-comment .list .nested-comment .list .nested-comment .list .nested-comment .list .nested-comment .list .nested-comment,
+.nested-comment .list .nested-comment .list .nested-comment .list .nested-comment .list .nested-comment .list .nested-comment .list .nested-comment .list .nested-comment,
+.nested-comment .list .nested-comment .list .nested-comment .list .nested-comment .list .nested-comment .list .nested-comment .list .nested-comment .list .nested-comment .list .nested-comment .list .nested-comment,
+.nested-comment .list .nested-comment .list .nested-comment .list .nested-comment .list .nested-comment .list .nested-comment .list .nested-comment .list .nested-comment .list .nested-comment .list .nested-comment .list .nested-comment .list .nested-comment,
+.nested-comment .list .nested-comment .list .nested-comment .list .nested-comment .list .nested-comment .list .nested-comment .list .nested-comment .list .nested-comment .list .nested-comment .list .nested-comment .list .nested-comment .list .nested-comment .list .nested-comment .list .nested-comment
+{background-color:#1c2935}
+/** Adjusts Comments - Minimize Comment Feature **/
+.nested-comment a.toggle-minimized, .nested-comment.isMinimized a.toggle-minimized {
+    background-position: center center;
+}
+.nested-comment.isMinimized a.toggle-minimized {
+    background-image: url(https://news-a.akamaihd.net/public/images/oce/Community/Boards/expand.png);
+    background-position: -0px -22px;
+    height: 22px;
+    width: 22px;
+}
+.nested-comment a.toggle-minimized {
+    height: 22px;
+    width: 22px;
+    right: inherit;
+    top: inherit;
+    background-position: -0px -0px;
+    background-image: url(https://news-a.akamaihd.net/public/images/oce/Community/Boards/expand.png);
+    top: -10px;
+    left: -10px;
+    z-index:1;
+}
+/** REMOVES BORDERS AROUND COMMENTS **/
+.nested-comment {border:none;padding:15px 5px 15px 15px}
+.nested-comment .body-container .body,#discussion .op-container #content {color:#aeb6b7}
+.nested-comment.isOP>.body-container>.header>.inline-profile a,.body-container a.profile-hover {
+	color: #9cb3e0;
+	font-weight: 600;
+	font-size:18px;
+}
+.list .realm, #comments a.profile-hover .username {
+    font-family: 'Beaufort for LOL', serif;
+    font-variant: small-caps;
+    padding: 2px 4px;
+    letter-spacing: 1px;
+	/*margin-left:5px;*/
+}
+/** Adjusts Comments - Circle Profile Picture in Comment **/
+.nested-comment .body-container .header .inline-profile img, .nested-comment .body-container .header .inline-profile .userGroupIcon img {
+    border-radius:50%;
+    border-style:solid;
+    height:31px;width:31px;
+}
+
+/** Adjust OP background **/
+.nested-comment.isOP>.body-container>.header>.inline-profile .username {background-color:#8fb1e05c;color:#e2e2e2}
+
+#discussion .masthead {border-bottom:1px solid #063f4c}
+#discussion #social-bar {border-top:1px solid #063f4c}
+
+/** Fancy sidebar image stuff **/
+#board-sidebar-image img {
+	height:124px;
+	opacity:.8;
+	transition: opacity .2s ease-out;
+	-moz-transition: opacity .2s ease-out;
+	-webkit-transition: opacity .2s ease-out;
+	-o-transition: opacity .2s ease-out;
+}
+#board-sidebar-image img:hover {opacity:1}
+#board-sidebar-image {background:black;border:1px solid #063f4c}
+
+/** Styling for buttons like the Create a Discussion and VOTE Buttons **/
+.button, body a.button,.riot-athena-body .btn.riot-athena-submit {background-color:#4b5556a1;outline:1px solid #949fa0;color:#dce2e2;font-family:"Beaufort for LoL",serif;font-weight:600;text-transform:uppercase;font-size:16px}
+.button:hover,body a.button:hover,.riot-athena .btn:hover {outline:1px solid #b0b0b0}
+
+/** Let's make stickers not take up so much space **/
+.nested-comment .body-container .body .sticker, .toolbar_dropdown .frame .sticker {width:100px;height:100px;background-size:cover}
+.cant-comment-warning a, .cant-comment-warning a:visited {color:#c8c8c8}
+
+
+/** ADJUSTS PLACEHOLDER TEXT **/
+::-webkit-input-placeholder { /* Chrome/Opera/Safari */
+  color: #b3b3b3!important;
+  font-family:"Beaufort for LoL",serif!important;
+}
+::-moz-placeholder { /* Firefox 19+ */
+  color: #b3b3b3!important;
+  font-family:"Beaufort for LoL",serif!important;
+}
+:-ms-input-placeholder { /* IE 10+ */
+  color: #b3b3b3!important;
+  font-family:"Beaufort for LoL",serif!important;
+}
+:-moz-placeholder { /* Firefox 18- */
+  color: #b3b3b3!important;
+  font-family:"Beaufort for LoL",serif!important;
+}
+/** SEEMS LIKE NO ONE HAS JOINED THE CONVERSATION YET, BE THE FIRST TO COMMENT BELOW! **/
+.box.secondary h3 {
+	color:#cccdc8;
+	font-family:"Beaufort for LoL",serif;
+	text-transform:uppercase;
+	font-size:14px;
+}
+
+/** ADJUSTING REPLY FORM CONTAINERS **/
+/** DARK BLUE **/
+#red-tracker .redtracker-list-item .body .content blockquote.vb-quote,
+.box.secondary.empty-comments,
+.reply.form-container .preview.box,
+.flat .reply.form-container .bottom-bar, .flat .edit.form-container .bottom-bar,
+.reply.form-container .bottom-bar, .edit.form-container .bottom-bar,
+.reply.form-container.main .textarea-holder, .edit.form-container.main .textarea-holder,
+.nested-comment .list .nested-comment .edit .textarea-holder,
+.nested-comment .list .nested-comment .list .nested-comment .edit .preview.box, .nested-comment .list .nested-comment .list .nested-comment .edit .bottom-bar,
+.nested-comment .list .nested-comment .list .nested-comment .list .nested-comment .edit .textarea-holder,
+.nested-comment .list .nested-comment .list .nested-comment .list .nested-comment .list .nested-comment .edit .preview.box, .nested-comment .list .nested-comment .list .nested-comment .list .nested-comment .list .nested-comment .edit .bottom-bar,
+.nested-comment .list .nested-comment .list .nested-comment .list .nested-comment .list .nested-comment .list .nested-comment .edit .textarea-holder,
+.nested-comment .list .nested-comment .list .nested-comment .list .nested-comment .list .nested-comment .list .nested-comment .list .nested-comment .edit .preview.box, .nested-comment .list .nested-comment .list .nested-comment .list .nested-comment .list .nested-comment .list .nested-comment .list .nested-comment .edit .bottom-bar,
+.nested-comment .list .nested-comment .list .nested-comment .list .nested-comment .list .nested-comment .list .nested-comment .list .nested-comment .list .nested-comment .edit .textarea-holder,
+.nested-comment .list .nested-comment .list .nested-comment .list .nested-comment .list .nested-comment .list .nested-comment .list .nested-comment .list .nested-comment .list .nested-comment .edit .preview.box, .nested-comment .list .nested-comment .list .nested-comment .list .nested-comment .list .nested-comment .list .nested-comment .list .nested-comment .list .nested-comment .list .nested-comment .edit .bottom-bar,
+.nested-comment .list .nested-comment .list .nested-comment .list .nested-comment .list .nested-comment .list .nested-comment .list .nested-comment .list .nested-comment .list .nested-comment .list .nested-comment .edit .textarea-holder,
+.nested-comment .list .nested-comment .list .nested-comment .list .nested-comment .list .nested-comment .list .nested-comment .list .nested-comment .list .nested-comment .list .nested-comment .list .nested-comment .list .nested-comment .edit .preview.box, .nested-comment .list .nested-comment .list .nested-comment .list .nested-comment .list .nested-comment .list .nested-comment .list .nested-comment .list .nested-comment .list .nested-comment .list .nested-comment .list .nested-comment .edit .bottom-bar,
+.nested-comment .list .nested-comment .list .nested-comment .list .nested-comment .list .nested-comment .list .nested-comment .list .nested-comment .list .nested-comment .list .nested-comment .list .nested-comment .list .nested-comment .list .nested-comment .edit .textarea-holder,
+.nested-comment .list .nested-comment .list .nested-comment .list .nested-comment .list .nested-comment .list .nested-comment .list .nested-comment .list .nested-comment .list .nested-comment .list .nested-comment .list .nested-comment .list .nested-comment .list .nested-comment .edit .preview.box, .nested-comment .list .nested-comment .list .nested-comment .list .nested-comment .list .nested-comment .list .nested-comment .list .nested-comment .list .nested-comment .list .nested-comment .list .nested-comment .list .nested-comment .list .nested-comment .list .nested-comment .edit .bottom-bar,
+.nested-comment .list .nested-comment .list .nested-comment .list .nested-comment .list .nested-comment .list .nested-comment .list .nested-comment .list .nested-comment .list .nested-comment .list .nested-comment .list .nested-comment .list .nested-comment .list .nested-comment .list .nested-comment .edit .textarea-holder
+{background-color:#10181f}
+/** LIGHT BLUE **/
+#red-tracker .redtracker-list-item.expanded .body,
+input.box, textarea.box,
+.riot_apollo[data-poll-widget=show] table.riot-athena-result-collection tr.riot-athena-choice.selected, .riot_apollo[data-poll-widget=show] table.riot-athena-result-collection tr.riot-athena-total.selected,
+.flat .reply.form-container .textarea-holder, .flat .edit.form-container .textarea-holder,
+.reply.form-container .textarea-holder, .edit.form-container .textarea-holder,
+.edit.form-container.main .bottom-bar,
+.reply.form-container.main .bottom-bar,
+.nested-comment .list .nested-comment .edit .preview.box, .nested-comment .list .nested-comment .edit .bottom-bar,
+.nested-comment .list .nested-comment .list .nested-comment .edit .textarea-holder,
+.nested-comment .list .nested-comment .list .nested-comment .list .nested-comment .edit .preview.box, .nested-comment .list .nested-comment .list .nested-comment .list .nested-comment .edit .bottom-bar,
+.nested-comment .list .nested-comment .list .nested-comment .list .nested-comment .list .nested-comment .edit .textarea-holder,
+.nested-comment .list .nested-comment .list .nested-comment .list .nested-comment .list .nested-comment .list .nested-comment .edit .preview.box, .nested-comment .list .nested-comment .list .nested-comment .list .nested-comment .list .nested-comment .list .nested-comment .edit .bottom-bar,
+.nested-comment .list .nested-comment .list .nested-comment .list .nested-comment .list .nested-comment .list .nested-comment .list .nested-comment .edit .textarea-holder,
+.nested-comment .list .nested-comment .list .nested-comment .list .nested-comment .list .nested-comment .list .nested-comment .list .nested-comment .list .nested-comment .edit .preview.box, .nested-comment .list .nested-comment .list .nested-comment .list .nested-comment .list .nested-comment .list .nested-comment .list .nested-comment .list .nested-comment .edit .bottom-bar,
+.nested-comment .list .nested-comment .list .nested-comment .list .nested-comment .list .nested-comment .list .nested-comment .list .nested-comment .list .nested-comment .list .nested-comment .edit .textarea-holder,
+.nested-comment .list .nested-comment .list .nested-comment .list .nested-comment .list .nested-comment .list .nested-comment .list .nested-comment .list .nested-comment .list .nested-comment .list .nested-comment .edit .preview.box, .nested-comment .list .nested-comment .list .nested-comment .list .nested-comment .list .nested-comment .list .nested-comment .list .nested-comment .list .nested-comment .list .nested-comment .list .nested-comment .edit .bottom-bar,
+.nested-comment .list .nested-comment .list .nested-comment .list .nested-comment .list .nested-comment .list .nested-comment .list .nested-comment .list .nested-comment .list .nested-comment .list .nested-comment .list .nested-comment .edit .textarea-holder,
+.nested-comment .list .nested-comment .list .nested-comment .list .nested-comment .list .nested-comment .list .nested-comment .list .nested-comment .list .nested-comment .list .nested-comment .list .nested-comment .list .nested-comment .list .nested-comment .edit .preview.box, .nested-comment .list .nested-comment .list .nested-comment .list .nested-comment .list .nested-comment .list .nested-comment .list .nested-comment .list .nested-comment .list .nested-comment .list .nested-comment .list .nested-comment .list .nested-comment .edit .bottom-bar,
+.nested-comment .list .nested-comment .list .nested-comment .list .nested-comment .list .nested-comment .list .nested-comment .list .nested-comment .list .nested-comment .list .nested-comment .list .nested-comment .list .nested-comment .list .nested-comment .list .nested-comment .edit .textarea-holder,
+.nested-comment .list .nested-comment .list .nested-comment .list .nested-comment .list .nested-comment .list .nested-comment .list .nested-comment .list .nested-comment .list .nested-comment .list .nested-comment .list .nested-comment .list .nested-comment .list .nested-comment .list .nested-comment .edit .preview.box, .nested-comment .list .nested-comment .list .nested-comment .list .nested-comment .list .nested-comment .list .nested-comment .list .nested-comment .list .nested-comment .list .nested-comment .list .nested-comment .list .nested-comment .list .nested-comment .list .nested-comment .list .nested-comment .edit .bottom-bar
+{background-color:#1c2935}
+
+body .body .vb-quote .markdown-content {display:inherit!important}
+
+/** Color of links **/
+.comments-header-container header .num-comments label {color:#465f65}
+
+/** Color of preview box stuff **/
+.reply.form-container .preview.box, .edit.form-container .preview.box {color:#465f65}
+/** Color of text in comment area **/
+.reply.form-container textarea, .edit.form-container textarea {color:#a7a7a7}
+
+/** Sets border colors of text-areas for comments **/
+.reply.form-container .textarea-holder, .edit.form-container .textarea-holder {border:1px solid #063f4c}
+.reply.form-container .bottom-bar, .edit.form-container .bottom-bar {border:1px solid #063f4c;border-top:none}
+
+#comments .reply.form-container .cant-comment-warning, .cant-comment-warning a {
+	font-family:"Beaufort for LoL",serif;
+	font-weight:500;
+}
+.box.show-more,#comments>.paging {border:1px solid #005c70;font-family:"Beaufort for LoL",serif}
+/** Adjusts Comments -  Changes Scroll-to Border **/
+.nested-comment.scroll-to-highlighted {
+    border: 2px solid #94724D!important
+}
+#submit input.box, #submit textarea.box {border-color:#063f4c}
+/** Adjusts the external embed modal background color **/
+#discussion .oembed-content-block,.report-widget {background:#16283a}
+
+.op-container .textarea-holder .editor {overflow-y:scroll!important}
+
+/** THE FOLLOWING IS FOR ADJUSTING VOLUNTEER USERNAMES **/
+/* This section sets the colors on the Boards index for volunteers */
+
+#advisor {color:#87CEEB}
+#moderator {color:#7fe4af}
+#herald {color:#9c4ad9}
+#naps {color:#cc6600}
+#eups {color:#76d7c4}
+#emissary {color:#458b00}
+#instructor {color:#5079c4}
+#wrenchman {color:#ff5214}
+#wrenchmanoce {color:#c98f1a}
+#archivist {color:#dee26f}
+#rioter,.body-container .inline-profile.isRioter a.profile-hover  {color:#ae250f}
+
+/* This section sets the actual role tags next to names */
+.tags {
+	font-size: 12px;
+	color: #fff;
+	border-radius: 10px;
+	padding: 2px 10px;
+	/*margin: 0px 10px 4px;*/
+	white-space:nowrap;
+}
+span.tags, span.tags a, span.tags a:visited {
+	font-family: "Spiegel-Regular",sans-serif;
+	font-variant: normal;
+	font-size: 12px;
+	letter-spacing: 0.1px;
+	color:#fff!important;
+	font-weight:normal!important;
+}
+.cmoderator {
+	background-color: #559473;
+}
+.cadvisor {
+	background-color: #5a96af;
+}
+.cnaps {
+	background-color: #cc6600;
+}
+.cherald {
+	background-color: #9c4ad9;
+}
+.ceups {
+	background-color: #5ea295;
+}
+.carchivist {
+	background-color: #9ca200;
+}
+.cwrenchman {
+	background-color: #ff5214;
+}
+.cwrenchmanoce {
+	background-color: #c98f1a;
+}
+.cemissary {
+	background-color: #458b00;
+}
+.crioter {
+	background-color: #801c0c;
+}
+.cinstructor {
+	background-color: #5079c4;
+}
+
+/* [ BELOW ] This section issues the triangles to volunteer comments [ BELOW ] */
+.ttriangle {
+	width: 0;
+	height: 0;
+	border-left: 30px solid transparent;
+	position: absolute;
+	top: 0;
+	right: 0;
+}
+.tmoderator {
+	border-top: 25px solid #7fe4af;
+}
+.therald {
+	border-top: 25px solid #9c4ad9;
+}
+.tadvisor {
+	border-top: 25px solid #87CEEB;
+}
+.tnaps {
+	border-top: 25px solid #cc6600;
+}
+.teups {
+	border-top: 25px solid #5ea295;
+}
+.twrenchman {
+	border-top: 25px solid #ff5214;
+}
+.twrenchmanoce {
+	border-top: 25px solid #c98f1a;
+}
+.tarchivist {
+	border-top: 25px solid #dee26f;
+}
+.temissary {
+	border-top: 25px solid #458b00;
+}
+.tinstructor {
+	border-top: 25px solid #5079c4;
+}
+
+.nested-comment .header.byline .op-ref-bar {
+	font-size:12px;
+	border:1px solid #607588;
+	border-left:4px solid #607588;
+	padding:2px 12px;
+	margin-left:7px;
+	white-space:nowrap;
+}
+.nested-comment .body-container .body .op-ref {
+	white-space:pre-wrap;
+	color:#B09C87;
+	border:1px dashed #0E3F49;
+	padding:15px;
+	font-size:14px;
+	margin-bottom:15px;
+}
+.discussion-list-item .riot-commented .poro-fist {
+	display:inline-block;
+	background-image:url("https://i.imgur.com/GnF5SPP.png") !important;
+	width:23px!important;
+	height:23px!important;
+	background-size:contain;
+}
+.discussion-list-item .riot-commented .dtb-fist {
+	display:inline-block;
+	background-image:url("https://i.imgur.com/W8yIXYt.png") !important;
+	width:23px!important;
+	height:23px!important;
+	background-size:contain;
+}
+.discussion-list-item .riot-commented .atc-fist {
+	display:inline-block;
+	background-image:url("https://universe.leagueoflegends.com/images/role_icon_support.png") !important;
+	width:23px!important;
+	height:23px!important;
+	background-size:contain;
+}
+
+/* This section fixes badges on hover profile */
+/*
+span.badge.b-s07diam-rankedflexsr {background-image:url("https://cdn.leagueoflegends.com/apollo/badges/s7dia_flex5.png")}
+span.badge.b-s07plat-rankedflexsr {background-image:url("https://cdn.leagueoflegends.com/apollo/badges/s7plat_flex5.png")}
+span.badge.b-s07gold-rankedflexsr {background-image:url("https://cdn.leagueoflegends.com/apollo/badges/s7gold_flex5.png")}
+
+span.badge.b-s07diam-rankedsolo5x5 {background-image:url("https://cdn.leagueoflegends.com/apollo/badges/s7dia_solo.png")}
+span.badge.b-s07plat-rankedsolo5x5 {background-image:url("https://cdn.leagueoflegends.com/apollo/badges/s7plat_solo.png")}
+span.badge.b-s07gold-rankedsolo5x5 {background-image:url("https://cdn.leagueoflegends.com/apollo/badges/s7gold_solo.png")}
+
+span.badge.b-s07diam-rankedflextt {background-image:url("https://cdn.leagueoflegends.com/apollo/badges/s7dia_flex3.png")}
+span.badge.b-s07plat-rankedflextt {background-image:url("https://cdn.leagueoflegends.com/apollo/badges/s7plat_flex3.png")}
+span.badge.b-s07gold-rankedflextt {background-image:url("https://cdn.leagueoflegends.com/apollo/badges/s7gold_flex3.png")}
+
+span.badge.b-s07plat {display:none!important}
+*/
+
+
+
+@media screen and (max-width:700px) {
+	.nested-comment {padding:10px 0px 4px 4px}
+	.discussion-list-item {border-bottom:1px solid #344e66}
+	#discussion #social-bar .right {display:block!important}
+	/** Re-enables the styling toolbar for mobile users **/
+	body .rfmtoolbar {display:block!important}
+	/** These fix the mobile site's formatting features **/
+	.reply.form-container .bottom-bar .rfmtoolbar, .edit.form-container .bottom-bar .rfmtoolbar {overflow-y:scroll}
+	html body .toolbar_dropdown {width:325px;margin-left:-55px}
+	#DropDown-slayer{left:18%!important}
+	#DropDown-champion{left:18%!important}
+	#DropDown-item{left:18%!important}
+	#DropDown-summoner{left:18%!important}
+}

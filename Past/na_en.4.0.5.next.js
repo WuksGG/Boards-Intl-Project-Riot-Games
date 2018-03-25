@@ -12,6 +12,8 @@ TO DO:
 5. Setup a callback for the volunteer tags function once mutation tracker in play
 6. Localization of last function for creating new threads; need to localize things like "GO TO COMMENT"
 7. Check for thread duplicates :)
+
+8. Cache API responses. 
 **/
 (function($,globals){
 	/* [START] Let's declare some variables */

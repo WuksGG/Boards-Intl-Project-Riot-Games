@@ -8,7 +8,7 @@
  * Developed primarily and exclusively for Riot Games, 
  * for use on the League of Legends Apollo Boards.
  *
- * Copyright (c) 2018 Michael Chan 
+ * Copyright (c) 2018 Michael Chan
  */
 (function($,globals,sessionStorage){
 	// Define globally scoped object
@@ -25,8 +25,7 @@
 		isBoardIndex = true;
 	} else {
 		isBoardIndex = false;
-		console.log(!$('.sorting.right').attr('style'));
-		if (!$('.sorting.right').attr('style')){
+		if (!$('#page-main').find('.sorting.right').attr('style')){
 		//if (document.getElementById('comments').getElementsByClassName('show-more').length !== 0){
 			isChronoView = false;
 		} else { isChronoView = true; }
@@ -120,9 +119,14 @@
 			for(var i=0; i<mutation.addedNodes.length;i++){
 				if(globals.GLOB.groupData){
 					applyUserGroups(globals.GLOB.groupData);
-					IndexVoting();
 					//$('.expanding-wrapper textarea').attr('placeholder','Hello, it\s me Wuks');
-				}			
+				}
+				if(isBoardIndex){
+					IndexVoting();
+				}
+				if(isChronoView){
+					commentParent();
+				}
 			}
 		});
 	});
@@ -159,7 +163,6 @@
 		var groupMemberList = Object.keys(groupData.application.metadata.groupsUser);
 		var groupMemberData = groupData.application.metadata.groupsUser;
 		var groupInfo = groupData.application.metadata.groups;
-		//console.log(groupInfo);
 		
 		$('a.profile-hover:not(.cka)').each(function(){
 			var $current = $(this);
@@ -208,36 +211,28 @@
 		// users if they hover over another user quick enough.
 		$('.information-container').each(function(){
 			var $current = $(this);
-			if($current.find('.summoner-name').text() === 'Wuks'){
-				$current
-					.find('.summoner-name')
-						.css('color','#9c4ad9')
+			var groupNumbers = Object.keys(groupInfo);
+			for(var i=0;i<groupNumbers.length;i++){
+				console.log($current.find('.title').text());
+				console.log(groupInfo[groupNumbers[i]].name);
+				if ($current.find('.title').text().indexOf(groupInfo[groupNumbers[i]].name) > -1){
+					$current
+						.find('.summoner-name')
+							.css('color',groupInfo[groupNumbers[i]].color)
 						.end()
-					.find('.title')
-						.text('Ohana Means Family')
-						.css('color','#6dc0cd')
-					.closest('.profile-hover')
-						.addClass('top-bar')
-						.css('border-top-color','#9c4ad9');
-			}
-			if($current.find('.title').text().indexOf('Herald') > -1){
-				$current.find('.summoner-name').css('color','#9c4ad9').end()
-					.find('.title').css('color','#6dc0cd')
-					.closest('.profile-hover')
-						.addClass('top-bar')
-						.css('border-top-color','#9c4ad9');
-			} else if($current.find('.title').text().indexOf('Advisor') > -1){
-				$current.find('.summoner-name').css('color','#87CEEB').end()
-					.find('.title').css('color','#6dc0cd')
-					.closest('.profile-hover')
-						.addClass('top-bar')
-						.css('border-top-color','#87CEEB');
-			} else if($current.find('.title').text().indexOf('Moderator') > -1){
-				$current.find('.summoner-name').css('color','#7fe4af').end()
-					.find('.title').css('color','#6dc0cd')
-					.closest('.profile-hover')
-						.addClass('top-bar')
-						.css('border-top-color','#7fe4af');
+						.find('.title')
+							.css('color','#6dc0cd')
+							.closest('.profile-hover')
+								.addClass('top-bar')
+								.css('border-top-color',groupInfo[groupNumbers[i]].color);
+					if ($current.closest('.top').find('img').attr('src').indexOf('/NA/Wuks.png') > -1){
+						$current
+							.find('.title')
+								.text('Ohana Means Family');
+					}
+					return;
+				}
+				
 			}
 		});
 	}
@@ -364,4 +359,3 @@
 	}
 	
 }(jQuery,this,this.sessionStorage));
-

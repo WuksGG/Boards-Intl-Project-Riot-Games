@@ -19,6 +19,7 @@
 	var isChronoView;
 	var isLoggedIn;
 	var groupData;
+	var APIresponse;
 	var region = window.location.href.split('.')[1];
 	var lang = window.location.href.split('/')[3];
 	if(document.getElementsByClassName('discussion-list-item').length > 0){
@@ -26,7 +27,6 @@
 	} else {
 		isBoardIndex = false;
 		if (!$('#page-main').find('.sorting.right').attr('style')){
-		//if (document.getElementById('comments').getElementsByClassName('show-more').length !== 0){
 			isChronoView = false;
 		} else { isChronoView = true; }
 	}
@@ -42,43 +42,95 @@
 		var requestURI = `https://apollo.${region}.leagueoflegends.com/apollo/applications/Ntey9fRZ`;
 	} else if (region === 'euw' || region === 'eune') {
 		// Filter down EU languages
-		if (lang === 'pl') {
+		if (lang === 'en'){
+			var requestURI = `https://apollo.${region}.leagueoflegends.com/apollo/applications/eZuvYsEr`;
+		} else if (lang === 'pl') {
+			var requestURI = `https://apollo.${region}.leagueoflegends.com/apollo/applications/rQQyBoxw`;
 		} else if (lang === 'es') {
+			var requestURI = `https://apollo.${region}.leagueoflegends.com/apollo/applications/Ov4LX3ej`;
 		} else if (lang === 'hu') {
+			var requestURI = `https://apollo.${region}.leagueoflegends.com/apollo/applications/zRAyEAAl`;
 		} else if (lang === 'ro') {
-		} else if (lang === 'pt') {
+			var requestURI = `https://apollo.${region}.leagueoflegends.com/apollo/applications/zeNkrfcE`;
 		} else if (lang === 'fr') {
 			var requestURI = `https://apollo.${region}.leagueoflegends.com/apollo/applications/HQuwfMYs`;
 		} else if (lang === 'it') {
+			var requestURI = `https://apollo.${region}.leagueoflegends.com/apollo/applications/cAOZwaUi`;
 		} else if (lang === 'de') {
+			var requestURI = `https://apollo.${region}.leagueoflegends.com/apollo/applications/Wj1wcocU`;
 		} else if (lang === 'el') {
+			var requestURI = `https://apollo.${region}.leagueoflegends.com/apollo/applications/Fv0OmEQe`;
 		} else if (lang === 'cs') {
+			var requestURI = `https://apollo.${region}.leagueoflegends.com/apollo/applications/xkHPa6iV`;
 		}
 	}
 
 	// Initialize Apollo CORS Bridge
 	var apolloBaseUrl = `https://apollo.${region}.leagueoflegends.com/apollo`;
 	var xhr;
+	// setup callback to processApiRequestQueue();
 	$.getScript(`${apolloBaseUrl}/cors/easyXDM.min.js`, ()=> {
-        xhr = new easyXDM.Rpc({
-            remote: `${apolloBaseUrl}/cors/index.html`,
-            swf: `${apolloBaseUrl}/easyXDM.swf`,
-            remoteHelper: `${apolloBaseUrl}/name.html`
-        }, {
-            remote: {
-                request: {}
-            }
-        });
+		xhr = new easyXDM.Rpc({
+			remote: `${apolloBaseUrl}/cors/index.html`,
+			swf: `${apolloBaseUrl}/easyXDM.swf`,
+			remoteHelper: `${apolloBaseUrl}/name.html`
+		}, {
+			remote: {
+				request: {}
+			}
+		});
+		processApiRequestQueue();
 	});
 	
+	// This function will absolutely reach the maximum call stack
+	// Need to replace !xhr with a direct callback.
+	// We're going to create a request queue to minimize the number of active open function calls.
+	globals.GLOB.queueStack = [];
+	function apiRequestQueue(requestURI,currentItem){
+		if(!xhr){
+			let b = {`'requestURI': '${requestURI}, 'currentItem': '${currentItem}`};
+			globals.GLOB.queueStack.push(b);
+			console.log(globals.GLOB.queueStack);
+		} else {
+			pullRioterProfiles(currentItem);
+		}
+	}
+	
+	function processApiRequestQueue(){
+		for(i=0;i<globals.GLOB.queueStack.length;i++){
+			let worker = globals.GLOB.queueStack.shift();
+			requestURI = worker[0];
+			currentItem = worker[1];
+			let apolloID = currentItem.attr('data-apollo-pvpnet-id');
+			CORSrequest(requestURI,applyRioterProfile,apolloID,currentItem);
+		}
+	}
+	
+	function pullRioterProfiles(currentItem){
+		var apolloID = currentItem.attr('data-apollo-pvpnet-id');
+		var userRegion = currentItem.attr('data-apollo-pvpnet-realm');
+		let requestURI = `https://apollo.${region}.leagueoflegends.com/apollo/users/${userRegion}/${apolloID}`;
+		if(!xhr){
+			apiRequestQueue(requestURI,currentItem);
+			return;
+		}
+		CORSrequest(requestURI,applyRioterProfile,apolloID,currentItem);
+	}
+	
+	function applyRioterProfile(title,currentItem){
+		if (title){
+			currentItem.parents('.byline:not(.discussion-footer)').find(".inline-profile:first").after(`<span class='tags crioter'>${title}</span>`);
+		}
+	}
+	
 	// Define CORS request template
-	function CORSrequest(requestURI,callback){
+	function CORSrequest(requestURI,callback,itemKey,currentItem){
 		xhr.request({
 			url: requestURI,
 			method: 'GET',
 		}, ({ status, data }) => {
 			// Success!
-			callback(data);
+			cacheResponse(data,callback,itemKey,currentItem);
 		}, ({ status, data }) => {
 			// Error callback //
 			console.log(status);
@@ -86,7 +138,35 @@
 		});
 	}
 	
-	// EVERYTHING BELOW THIS LINE NEEDS TO BE ADJUSTED
+	function cacheResponse(APIresponse,callback,itemKey,currentItem){
+		if (itemKey === 'groupData'){
+			APIresponse = JSON.stringify(JSON.parse(APIresponse).application.metadata);
+		} else {
+			APIresponse = JSON.parse(APIresponse).user.profile.data.title;
+		}
+		globals.GLOB[itemKey] = APIresponse;
+		if (storageAvailable('sessionStorage')) {
+			if (!sessionStorage.getItem(`${region}${lang}_${itemKey}`)) {
+				sessionStorage.setItem(`${region}${lang}_${itemKey}`,APIresponse);
+			}
+		}
+		callback(APIresponse,currentItem);
+		//CORSrequest(requestURI,applyRioterProfile,apolloID,currentItem);
+	}
+	
+	// Synchronous and callback
+	function pullUserGroups(){
+		var apiBridgeHandle;
+		clearTimeout(apiBridgeHandle);
+		if(!xhr){
+			apiBridgeHandle = setTimeout(pullUserGroups,0);
+			return;
+		}
+		CORSrequest(requestURI,applyUserGroups,'groupData');
+	}
+	
+	
+	
 	if(isBoardIndex){
 		IndexVoting();
 	}
@@ -94,23 +174,19 @@
 		commentParent();
 	}
 	
-	
 	// Cache Check!
 	// Initialize Group Info Pulling
 	if (storageAvailable('sessionStorage')){ // sessionStorage compatible
-		if (!sessionStorage.getItem(`${region}${lang}groupData`)){ // and is not defined
+		if (!sessionStorage.getItem(`${region}${lang}_groupData`)){ // and is not defined
 			pullUserGroups();
 		} else { // is defined
-			groupData = sessionStorage.getItem(`${region}${lang}groupData`); // Pull from sessionStorage
+			groupData = sessionStorage.getItem(`${region}${lang}_groupData`); // Pull from sessionStorage
 			globals.GLOB.groupData = groupData;
 			applyUserGroups(groupData);
 		}
 	} else { // not sessionStorage compatible
 		pullUserGroups(); // We'll need to utilize API call and not use API response caching.
 	}
-	
-	// Also, note to self, that we'll need different sessionStorage based on Board,
-	// since we'll see collisions, primarily among the European Boards.
 	
 	// Mutation Observer as page loads
 	var body = document.getElementsByTagName('body')[0];
@@ -119,7 +195,6 @@
 			for(var i=0; i<mutation.addedNodes.length;i++){
 				if(globals.GLOB.groupData){
 					applyUserGroups(globals.GLOB.groupData);
-					//$('.expanding-wrapper textarea').attr('placeholder','Hello, it\s me Wuks');
 				}
 				if(isBoardIndex){
 					IndexVoting();
@@ -132,43 +207,18 @@
 	});
 	observer.observe(body,{childList:true});
 	
-	// Synchronous and callback
-	function pullUserGroups(){
-		var apiBridgeHandle;
-		clearTimeout(apiBridgeHandle);
-		if(!xhr){
-			apiBridgeHandle = setTimeout(pullUserGroups,0);
-			return;
-		}
-		CORSrequest(requestURI,cacheUserGroups);
-	}
-	
-	// Pulls the different groups and associated user ID's within groups
-	function cacheUserGroups(groupData){
-		if (storageAvailable('sessionStorage')) {
-			if (!sessionStorage.getItem(`${region}${lang}groupData`)) {
-				sessionStorage.setItem(`${region}${lang}groupData`,groupData);
-				globals.GLOB.groupData = groupData;
-			} else {
-				globals.GLOB.groupData = groupData;
-			}
-		} else {
-			globals.GLOB.groupData = groupData;
-		}
-		applyUserGroups(groupData);
-	}
 	
 	function applyUserGroups(groupData){
-		var groupData = JSON.parse(groupData);
-		var groupMemberList = Object.keys(groupData.application.metadata.groupsUser);
-		var groupMemberData = groupData.application.metadata.groupsUser;
-		var groupInfo = groupData.application.metadata.groups;
-		
+		groupData = JSON.parse(groupData);
+		var groupMemberList = Object.keys(groupData.groupsUser);
+		var groupMemberData = groupData.groupsUser;
+		var groupInfo = groupData.groups;
 		$('a.profile-hover:not(.cka)').each(function(){
 			var $current = $(this);
 			this.className += ' cka';
-			if(!$current.parent().hasClass('isRioter')){ // Sets Non-Rioter Flares
-				var apolloID = $current.attr('data-apollo-pvpnet-id');
+			var apolloID = $current.attr('data-apollo-pvpnet-id');
+			if(!$current.parent().hasClass('isRioter')){
+				// Sets Non-Rioter Flares
 				for(var i=groupMemberList.length-1;i>-1;i-=1){
 					if(apolloID === groupMemberList[i].split(':')[1]){
 						var currentGroup = groupInfo[groupMemberData[groupMemberList[i]]];
@@ -189,23 +239,21 @@
 							.css('color',currentGroup.color);
 					}
 				}
-			} else { // Sets Rioter Titles
-				var tArray = $current.attr("href").split('/');
-				let z = `https://boards.${region}.leagueoflegends.com/api/users/${tArray[3]}/${tArray[4]}`;
-				var xmlhttp = new XMLHttpRequest();
-				xmlhttp.onreadystatechange = function() {
-					if (this.readyState == 4 && this.status === 200) {
-						var myObj = JSON.parse(this.responseText);
-						if(myObj.profile !== null && myObj.profile.data.hasOwnProperty('title')){
-							var title = myObj.profile.data.title;
-							current.parents('.byline:not(.discussion-footer)').find(".inline-profile:first").after(`<span class='tags crioter'>${title}</span>`);
-						}
+			} else {
+				// Sets Rioter Titles
+				if (storageAvailable('sessionStorage')){ // sessionStorage compatible
+					if (!sessionStorage.getItem(`${region}${lang}_${apolloID}`)){ // and is not defined
+						pullRioterProfiles($current);
+					} else { // is defined
+						var rioterProfile = sessionStorage.getItem(`${region}${lang}_${apolloID}`); // Pull from sessionStorage
+						applyRioterProfile(rioterProfile,$current);
 					}
-				};
-				xmlhttp.open("GET", z, true);
-				xmlhttp.send();
+				} else { // not sessionStorage compatible
+					pullRioterProfiles($current);
+				}
 			}			
 		});
+		
 		
 		// We use the .each function to resolve a bug that applies colors to other
 		// users if they hover over another user quick enough.
@@ -213,8 +261,6 @@
 			var $current = $(this);
 			var groupNumbers = Object.keys(groupInfo);
 			for(var i=0;i<groupNumbers.length;i++){
-				console.log($current.find('.title').text());
-				console.log(groupInfo[groupNumbers[i]].name);
 				if ($current.find('.title').text().indexOf(groupInfo[groupNumbers[i]].name) > -1){
 					$current
 						.find('.summoner-name')
@@ -232,13 +278,11 @@
 					}
 					return;
 				}
-				
 			}
 		});
 	}
 	
 	function IndexVoting(){
-		// Obtain a object of voting
 		$('#discussion-list')
 			.find('ul.upVoted:not(#cv)')
 				.attr('id','cv')

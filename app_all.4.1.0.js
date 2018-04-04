@@ -22,6 +22,13 @@
 	var APIresponse;
 	var region = window.location.href.split('.')[1];
 	var lang = window.location.href.split('/')[3];
+	if(document.getElementsByClassName('new-discussion-box')[0].innerText.includes('CREATE A DISCUSSION')){
+		var createThread = true;
+	} else {
+		var createThread = false;
+		document.getElementsByClassName('new-discussion-box')[0].remove();
+	}
+	
 	if(document.getElementsByClassName('discussion-list-item').length > 0){
 		isBoardIndex = true;
 	} else {
@@ -85,24 +92,87 @@
 	// This function will absolutely reach the maximum call stack
 	// Need to replace !xhr with a direct callback.
 	// We're going to create a request queue to minimize the number of active open function calls.
+	// // // resolved
 	globals.GLOB.queueStack = [];
-	function apiRequestQueue(requestURI,currentItem){
-		if(!xhr){
-			let b = {`'requestURI': '${requestURI}, 'currentItem': '${currentItem}`};
-			globals.GLOB.queueStack.push(b);
-			console.log(globals.GLOB.queueStack);
-		} else {
-			pullRioterProfiles(currentItem);
-		}
+	function apiRequestQueue(requestURI,currentItem,callback){
+		let discId = currentItem.attr('data-discussion-id');
+		var b = {'requestURI': requestURI, 'currentItem': currentItem, 'callback': callback};
+		//currentItem.css('backgroundColor','green');
+		globals.GLOB.queueStack.push(b);
 	}
 	
 	function processApiRequestQueue(){
 		for(i=0;i<globals.GLOB.queueStack.length;i++){
-			let worker = globals.GLOB.queueStack.shift();
-			requestURI = worker[0];
-			currentItem = worker[1];
-			let apolloID = currentItem.attr('data-apollo-pvpnet-id');
-			CORSrequest(requestURI,applyRioterProfile,apolloID,currentItem);
+			var worker = globals.GLOB.queueStack.shift();
+			var requestURI = worker.requestURI;
+			var currentItem = worker.currentItem;
+			var callback = worker.callback;
+			if(callback.name === 'applyRioterProfile'){
+				var itemKey = currentItem.attr('data-apollo-pvpnet-id');
+			} else if(callback.name === 'applyThreadFlare'){
+				var appId = currentItem.attr('data-application-id');
+				var discId = currentItem.attr('data-discussion-id');
+				var itemKey = `${appId}_${discId}`;
+			}
+			CORSrequest(requestURI,callback,itemKey,currentItem);
+		}
+	}
+	
+	function boardIndexFlares(){
+		$('#discussions').find('tr.discussion-list-item:not(.cn)').each(function(){
+			this.className += ' cn';
+			var currentItem = $(this);
+			//boardIndexFlares($(this));
+			var appId = currentItem.attr('data-application-id');
+			var discId = currentItem.attr('data-discussion-id');
+			if (storageAvailable('sessionStorage')){
+				if (!sessionStorage.getItem(`${region}${lang}_${appId}_${discId}`)){
+					pullThread(currentItem);
+				} else {
+					var threadInfo = sessionStorage.getItem(`${region}${lang}_${appId}_${discId}`);
+					applyThreadFlare(threadInfo,currentItem);
+				}
+			} else {
+				pullThread(currentItem);
+			}
+		});
+	}
+	
+	function pullThread(currentItem){
+		var appId = currentItem.attr('data-application-id');
+		var discId = currentItem.attr('data-discussion-id');
+		let requestURI = `https://apollo.${region}.leagueoflegends.com/apollo/applications/${appId}/discussions/${discId}?page_size=0&`;
+		if(!xhr){
+			apiRequestQueue(requestURI,currentItem,applyThreadFlare);
+			return;
+		}
+		var itemKey = `${appId}_${discId}`;
+		CORSrequest(requestURI,applyThreadFlare,itemKey,currentItem);
+	}
+	
+	function applyThreadFlare(threadInfo,currentItem){
+		var appId = currentItem.attr('data-application-id');
+		var discId = currentItem.attr('data-discussion-id');
+		threadInfo = JSON.parse(threadInfo);
+		var pinned = threadInfo.pinned;
+		var commentsEnabled = threadInfo.commentCreationEnabled;
+		if(!commentsEnabled && currentItem.find('.voting:not(:has(.pin))').length === 0){
+			currentItem.find('.voting').html('<div class=\'locked\'></div>');
+		}
+		if(pinned !== 'undefined'){
+			if(!currentItem.hasClass('has-rioter-comments')){
+				if(['iGy1uadH','PlNcL9TL','tn3qAbc8','A7LBtoKc'].indexOf(appId) > -1){
+					currentItem.find('.riot-commented').append(`<a href=\'/f/${appId}/d/${discId}?comment=${pinned}\' class=\'dtb-fist opaque\'>&nbsp;</a>`);
+				}
+			}
+		}
+		//currentItem.css('backgroundColor','red');
+	}
+	
+	function applyRioterProfile(title,currentItem){
+		console.log(title);
+		if (title !== 'undefined'){
+			currentItem.parents('.byline:not(.discussion-footer)').find(".inline-profile:first").after(`<span class='tags crioter'>${title}</span>`);
 		}
 	}
 	
@@ -111,16 +181,10 @@
 		var userRegion = currentItem.attr('data-apollo-pvpnet-realm');
 		let requestURI = `https://apollo.${region}.leagueoflegends.com/apollo/users/${userRegion}/${apolloID}`;
 		if(!xhr){
-			apiRequestQueue(requestURI,currentItem);
+			apiRequestQueue(requestURI,currentItem,applyRioterProfile);
 			return;
 		}
 		CORSrequest(requestURI,applyRioterProfile,apolloID,currentItem);
-	}
-	
-	function applyRioterProfile(title,currentItem){
-		if (title){
-			currentItem.parents('.byline:not(.discussion-footer)').find(".inline-profile:first").after(`<span class='tags crioter'>${title}</span>`);
-		}
 	}
 	
 	// Define CORS request template
@@ -139,10 +203,22 @@
 	}
 	
 	function cacheResponse(APIresponse,callback,itemKey,currentItem){
-		if (itemKey === 'groupData'){
-			APIresponse = JSON.stringify(JSON.parse(APIresponse).application.metadata);
-		} else {
+		if (callback.name === 'applyUserGroups'){
+			APIresponse = JSON.parse(APIresponse).application.metadata;
+			delete APIresponse.c_bgi;
+			delete APIresponse.c_si;
+			delete APIresponse.c_sil;
+			delete APIresponse.c_hi;
+			delete APIresponse.c_hil;
+			delete APIresponse.ff;
+			APIresponse = JSON.stringify(APIresponse);
+		} else if(callback.name === 'applyRioterProfile'){
 			APIresponse = JSON.parse(APIresponse).user.profile.data.title;
+		} else if(callback.name === 'applyThreadFlare'){
+			APIresponse = JSON.parse(APIresponse);
+			var pinned = APIresponse.discussion.content.pinned;
+			var commentEnabled = APIresponse.discussion.commentCreationEnabled;
+			APIresponse = `{"pinned": "${pinned}", "commentCreationEnabled": ${commentEnabled}}`;
 		}
 		globals.GLOB[itemKey] = APIresponse;
 		if (storageAvailable('sessionStorage')) {
@@ -164,8 +240,6 @@
 		}
 		CORSrequest(requestURI,applyUserGroups,'groupData');
 	}
-	
-	
 	
 	if(isBoardIndex){
 		IndexVoting();
@@ -198,15 +272,43 @@
 				}
 				if(isBoardIndex){
 					IndexVoting();
+					boardIndexFlares();
 				}
 				if(isChronoView){
 					commentParent();
 				}
+				if(xhr){
+					processApiRequestQueue();
+				}
+				//console.log(globals.GLOB.queueStack);
+				//cycle();
 			}
 		});
 	});
 	observer.observe(body,{childList:true});
 	
+	// Fallback for errors
+	$(document).on('click',cycle());
+	function cycle(){
+		var intervalID = setInterval(function() {
+			if(globals.GLOB.groupData){
+				applyUserGroups(globals.GLOB.groupData);
+			}
+			if(isBoardIndex){
+				IndexVoting();
+			}
+			if(isChronoView){
+				commentParent();
+				boardIndexFlares();
+			}
+			if(xhr){
+				processApiRequestQueue();
+			}
+		}, 750);
+		setTimeout(function() {
+			clearInterval(intervalID);
+		}, 10000);
+	}
 	
 	function applyUserGroups(groupData){
 		groupData = JSON.parse(groupData);
@@ -283,64 +385,79 @@
 	}
 	
 	function IndexVoting(){
-		$('#discussion-list')
-			.find('ul.upVoted:not(#cv)')
-				.attr('id','cv')
-				.parent()
-					.parent()
-						.css('border-left','2px solid #009700')
-					.end()
-				.end()
-			.end()
-			.find('ul.downVoted:not(#cv)')
-				.attr('id','cv')
-				.parent()
-					.parent()
-						.css('border-left','2px solid #e23636')
-					.end()
-				.end()
-			.end()
-			.find('button.up-vote')
-				.remove()
-			.end()
-			.find('button.down-vote')
-				.remove()
-			.end();
-		$('#discussion-list').find('.riot-apollo.voting:not(.wx)').each(function(){
-			$v = $(this);
-			$v.addClass('wx');
-			var up = $v.attr('data-apollo-up-votes');
-			var down = $v.attr('data-apollo-down-votes');
-			var total = up - down;
-			if (total === 1){
-				$v.find('.total-votes').attr('style','color:#13bbc1').end()
-					.find('ul.riot-voting').append('<li>vote</li>');
-			} else if (total === 0){
-				$v.find('.total-votes').attr('style','color:#13bbc1').end()
-					.find('ul.riot-voting').append('<li>votes</li>');
-			} else if (total > 5){
-				$v.find('.total-votes').attr('style','color:#22b722').end()
-					.find('ul.riot-voting').append('<li>votes</li>');
-			} else if([2,3].indexOf(total) > -1){
-				$v.find('.total-votes').attr('style','color:#b3c524').end()
-					.find('ul.riot-voting').append('<li>votes</li>');
-			} else if([-1,-2].indexOf(total) > -1){
-				$v.find('.total-votes').attr('style','color:#ffda4e').end()
-					.find('ul.riot-voting').append('<li>votes</li>');
-			} else if([-3,-4].indexOf(total) > -1){
-				$v.find('.total-votes').attr('style','color:#ffa51b').end()
-					.find('ul.riot-voting').append('<li>votes</li>');
-			} else if(total < -4){
-				$v.find('.total-votes').attr('style','color:#ffa51b').end()
-					.find('ul.riot-voting').append('<li>votes</li>');
-			} else if([4,5].indexOf(total) > -1){
-				$v.find('.total-votes').attr('style','color:#86bf00').end()
-					.find('ul.riot-voting').append('<li>votes</li>');
+		$('#discussion-list').find('tr.discussion-list-item:not(.cv)').each(function(){
+			this.className += ' cv';
+			$this = $(this).find('.voting');
+			var vote = $this.find('div').attr('data-apollo-user-vote');
+			var upVotes = $this.find('div').attr('data-apollo-up-votes');
+			var downVotes = $this.find('div').attr('data-apollo-down-votes');
+			var totalVotes = upVotes-downVotes;
+			if(vote === 'up'){
+				$this.css('border-left','2px solid #009700');
+			} else if(vote === 'down'){
+				$this.css('border-left','2px solid #e23636');
+			} else if(vote == undefined){
+				$this.html('<div class=\'voting-locked\'></div>');
 			}
+			if(vote !== undefined){
+				var suffix;
+				var color;
+				if(totalVotes === 1){
+					color = '#13bbc1';
+					suffix = 'vote';
+				} else {
+					suffix = 'votes';
+					if(totalVotes === 0){
+						color = '#13bbc1';
+					} else if(totalVotes > 5){
+						color = '#22b722';
+					} else if([2,3].indexOf(totalVotes) > -1){
+						color = '#9fca68';
+					} else if([-1,-2].indexOf(totalVotes) > -1){
+						color = '#ffda4e';
+					} else if([-3,-4].indexOf(totalVotes) > -1){
+						color = '#ffa51b';
+					} else if(totalVotes < -4){
+						color = '#fd3b3b';
+					} else if([4,5].indexOf(totalVotes) > -1){
+						color = '#86bf00';
+					}
+				}
+				$this.html(`<div class=\'riot-apollo voting\'><ul class=\'riot-voting\'><li></li><li class=\'total-votes\' style=\'color:${color}\'>${totalVotes}</li><li></li><li>${suffix}</li></ul></div>`);
+			}
+			
 		});
 	}
 
 	function commentParent(){
+		//https://apollo.na.leagueoflegends.com/apollo/applications/A7LBtoKc/discussions/na3Ko02t/comment/001c0000
+		//apollo request format
+		var thread = $('#discussion').find('li.view-in-mod-tool a').attr('href').split('/');
+		var appId = thread[4];
+		var discId = thread[6];
+		$('.nested-comment:not(.isChild):not(.isDeleted)').each(function(){
+			this.className += ' isChild';
+			$this = $(this);
+			var commentId = $this.attr('id');
+			if(undefined !== commentId && commentId.length){
+				if(commentId.length > 12){
+					var l = commentId.slice(8,-4);
+					var requestURI = `https://apollo.${region}.leagueoflegends.com/apollo/applications/{$appId}/discussions/${discId}/comment/${l}`;
+					
+					```var apolloID = currentItem.attr('data-apollo-pvpnet-id');
+					var userRegion = currentItem.attr('data-apollo-pvpnet-realm');
+					let requestURI = https://apollo.${region}.leagueoflegends.com/apollo/users/${userRegion}/${apolloID};
+					if(!xhr){
+						apiRequestQueue(requestURI,currentItem,applyRioterProfile);
+						return;
+					}
+					CORSrequest(requestURI,applyRioterProfile,apolloID,currentItem);```
+				}
+			}
+		});
+		
+		
+		/*
 		var tArray = $("#discussion").find("li.view-in-mod-tool a").attr("href").split('/');
 		var appID = tArray[4];
 		var discID = tArray[6];
@@ -370,7 +487,7 @@
 					xmlhttp.send();
 				}
 			}
-		});
+		});*/
 	}
 
 	

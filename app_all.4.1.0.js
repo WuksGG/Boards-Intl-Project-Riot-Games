@@ -22,20 +22,78 @@
 	var APIresponse;
 	var region = window.location.href.split('.')[1];
 	var lang = window.location.href.split('/')[3];
-	if(document.getElementsByClassName('new-discussion-box')[0].innerText.includes('CREATE A DISCUSSION')){
-		var createThread = true;
+	
+	
+	if(document.getElementsByClassName('new-discussion-box')[0].getElementsByTagName('a')[0]){
+		var createLink = document.getElementsByClassName('new-discussion-box')[0].getElementsByTagName('a')[0].getAttribute('href');
 	} else {
-		var createThread = false;
 		document.getElementsByClassName('new-discussion-box')[0].remove();
 	}
+	
+	// LOCALIZATION
+	var commentDisable_1;
+	var commentDisable_2;
+	var goToComment;
+	if(lang === 'en'){
+		commentDisable_1 = "This thread has been archived."; 
+		commentDisable_2 = "Create a new thread instead?";
+		goToComment = "GO TO COMMENT";
+	} else if(lang === 'pl'){
+		commentDisable_1 = "Ten wątek został zamknięty.";
+		commentDisable_2 = "Aby kontynuować dyskusję, stwórz nowy wątek.";
+		goToComment = "PRZEJDŹ DO KOMENTARZA";
+	} else if(lang === 'es'){
+		commentDisable_1 = "Esta discusión ha sido archivada."
+		commentDisable_2 = "¿Crear una nueva discusión en su lugar?";
+		goToComment = "IR A COMENTARIO";
+	} else if(lang === 'hu'){
+		commentDisable_1 = "A téma archiválva lett.";
+		commentDisable_2 = "Létrehozol inkább egy új témát?";
+		goToComment = "VISSZA A TÉMÁHOZ";
+	} else if(lang === 'ro'){
+		commentDisable_1 = "Această postare a fost arhivată.";
+		commentDisable_2 = "Creezi o nouă postare?";
+		goToComment = "MERGI LA COMENTARIU";
+	} else if(lang === 'pt'){
+		commentDisable_1 = "Esta discussão foi arquivada.";
+		commentDisable_2 = "Criar uma nova discussão em vez disso?";
+		goToComment = "IR PARA COMENTÁRIO";
+	} else if(lang === 'fr'){
+		commentDisable_1 = "Cette discussion a été archivée.";
+		commentDisable_2 = "Voulez vous créer un nouveau sujet ?";
+		goToComment = "SE RENDRE AU COMMENTAIRE";
+	} else if(lang === 'it'){
+		commentDisable_1 = "Questa discussione è stata archiviata.";
+		commentDisable_2 = "Vuoi creare una nuova discussione?";
+		goToComment = "VAI AL COMMENTO";
+	} else if(lang === 'de'){
+		commentDisable_1 = "Diese Diskussion wurde archiviert.";
+		commentDisable_2 = "Soll eine neue Diskussion erstellt werden?";
+		goToComment = "ZUM KOMMENTAR";
+	} else if(lang === 'el'){
+		commentDisable_1 = "Αυτή η συζήτηση έχει μπει στο αρχείο.";
+		commentDisable_2 = "Θέλεις να δημιουργήσεις μια νέα συζήτηση";
+		goToComment = "Πηγαίντε στο σχόλιο";
+	} else if(lang === 'cs'){
+		commentDisable_1 = "Tato diskuze byla archivována.";
+		commentDisable_2 = "Chceš vytvořit novou diskuzi?";
+		goToComment = "PŘEJÍT NA KOMENTÁŘ";
+	}
+	
+	function archivedThread(){
+		if(!isBoardIndex && document.getElementsByClassName('cant-comment-warning')[1] && createLink){
+			document.getElementsByClassName('cant-comment-warning')[1].innerHTML = `<span class=\'icon-lock-brown\'></span>${commentDisable_1} <a href=\'${createLink}\'>${commentDisable_2}</a>`;
+		}
+	}
+	
 	
 	if(document.getElementsByClassName('discussion-list-item').length > 0){
 		isBoardIndex = true;
 	} else {
 		isBoardIndex = false;
-		if (!$('#page-main').find('.sorting.right').attr('style')){
-			isChronoView = false;
-		} else { isChronoView = true; }
+		if (document.getElementById('comments').getElementsByClassName('muted').length !== 0){
+			isChronoView = true;
+		} else { isChronoView = false; }
 	}
 	if(document.getElementsByClassName('logged-in').length > 0){
 		isLoggedIn = true;
@@ -167,6 +225,11 @@
 		}
 		if(pinned !== 'undefined'){
 			if(!currentItem.hasClass('has-rioter-comments')){
+				// 6heBIhQc = Discuss the Boards (NA)
+				// ElA0rvVL = Help & Support (OCE)
+				// tn3qAbc8 = Testing Area (NA)
+				// PlNcL9TL = Sub-Testing Board (OCE)
+				// iGy1uadH = Testing Board (OCE)
 				if(['iGy1uadH','PlNcL9TL','tn3qAbc8','A7LBtoKc'].indexOf(appId) > -1){
 					currentItem.find('.riot-commented').append(`<a href=\'/f/${appId}/d/${discId}?comment=${pinned}\' class=\'dtb-fist opaque\'>&nbsp;</a>`);
 				}
@@ -231,14 +294,11 @@
 		} else if(callback.name === 'renderComment'){
 			APIresponse = JSON.parse(APIresponse);
 			var message = JSON.stringify(APIresponse.message);
-			console.log(message);
-			console.log(JSON.stringify(message));
 			var deleted = APIresponse.deleted;
 			var userName = APIresponse.user.name;
 			var userRealm = APIresponse.user.realm;
 			var id = APIresponse.id;
 			APIresponse = `{"message": ${message}, "userName": "${userName}", "userRealm": "${userRealm}", "deleted": ${deleted}, "id": "${id}"}`;
-			console.log(APIresponse);
 		}
 		globals.GLOB[itemKey] = APIresponse;
 		if (storageAvailable('sessionStorage')) {
@@ -282,6 +342,10 @@
 		pullUserGroups(); // We'll need to utilize API call and not use API response caching.
 	}
 	
+	$(function(){
+		archivedThread();
+	});
+	
 	// Mutation Observer as page loads
 	var body = document.getElementsByTagName('body')[0];
 	var observer = new MutationObserver(function(mutations){
@@ -300,8 +364,7 @@
 				if(xhr){
 					processApiRequestQueue();
 				}
-				//console.log(globals.GLOB.queueStack);
-				//cycle();
+				cycle();
 			}
 		});
 	});
@@ -327,7 +390,7 @@
 		}, 750);
 		setTimeout(function() {
 			clearInterval(intervalID);
-		}, 10000);
+		}, 5000);
 	}
 	
 	function applyUserGroups(groupData){
@@ -417,7 +480,6 @@
 			} else if(vote === 'down'){
 				$this.css('border-left','2px solid #e23636');
 			} else if(vote == undefined){
-				console.log($this.has('.pin'));
 				$this.html('<div class=\'voting-locked\'></div>');
 			}
 			if(vote !== undefined){
@@ -484,13 +546,12 @@
 		var commentId = commentData.id;
 		var userRealm = commentData.userRealm;
 		var userName = commentData.userName;
-		
 		if(commentData.deleted){
-			`<span style="color:#fff;background-color:#9e2020;padding:3px 10px;border-radius:5px;display:inline-flex">Sorry! The comment you have requested is no longer available.</span>`
+			message = `<span style="color:#fff;background-color:#9e2020;padding:3px 10px;border-radius:5px;display:inline-flex">Sorry! The comment you have requested is no longer available.</span>`
 		}
 		currentItem
 			.find('.body')
-				.prepend(`<div class=\'op-ref\' style=\'display:none\'><p>${message}</p><a class=\'footer\' href=\'?show=flat&comment=${commentId}\'>GO TO COMMENT</a></div>`)
+				.prepend(`<div class=\'op-ref\' style=\'display:none\'><p>${message}</p><a class=\'footer\' href=\'?show=flat&comment=${commentId}\'>${goToComment}</a></div>`)
 			.end()
 			.find('.header.byline.clearfix')
 				.append(`<span class=\'op-ref-bar\'>Response To: <a href=\'https://boards.${region}.leagueoflegends.com/${lang}/player/${userRealm}/${userName}\'>${userName}</a> (${userRealm})

@@ -269,12 +269,86 @@
 		});
 	}
 	
+	function applyUserGroups(groupData){
+		groupData = JSON.parse(groupData).application.metadata;
+		var groupMemberList = Object.keys(groupData.groupsUser);
+		var groupMemberData = groupData.groupsUser;
+		var groupInfo = groupData.groups;
+		$('a.profile-hover:not(.cka)').each(function(){
+			var $current = $(this);
+			this.className += ' cka';
+			var apolloID = $current.attr('data-apollo-pvpnet-id');
+			if(!$current.parent().hasClass('isRioter')){
+				// Sets Non-Rioter Flares
+				for(var i=groupMemberList.length-1;i>-1;i-=1){
+					if(apolloID === groupMemberList[i].split(':')[1]){
+						var currentGroup = groupInfo[groupMemberData[groupMemberList[i]]];
+						$current
+							.parents('.byline:not(.discussion-footer)')
+								.find('.inline-profile:first')
+									.after(`<span class='tags' style='background-color:${currentGroup.color}'>${currentGroup.name}</span>`)
+								.end()
+							.end()
+							.closest('.nested-comment')
+								.find('.masthead:first')
+									.append(`<span class='ttriangle' style='border-top: 25px solid ${currentGroup.color}'></span>`)
+								.end()
+							.end()
+							.closest('.nested-comment:not(.glow):not(.flat)')
+								.attr('style',`border-top:1px solid ${currentGroup.color}`)
+							.end()
+							.css('color',currentGroup.color);
+					}
+				}
+			} else {
+				// Sets Rioter Titles
+				if (storageAvailable('sessionStorage')){ // sessionStorage compatible
+					if (!sessionStorage.getItem(`${region}${lang}_${apolloID}`)){ // and is not defined
+						pullRioterProfiles($current);
+					} else { // is defined
+						var rioterProfile = sessionStorage.getItem(`${region}${lang}_${apolloID}`); // Pull from sessionStorage
+						applyRioterProfile(rioterProfile,$current);
+					}
+				} else { // not sessionStorage compatible
+					pullRioterProfiles($current);
+				}
+			}			
+		});
+		
+		
+		// We use the .each function to resolve a bug that applies colors to other
+		// users if they hover over another user quick enough.
+		$('.information-container').each(function(){
+			var $current = $(this);
+			var groupNumbers = Object.keys(groupInfo);
+			for(var i=0;i<groupNumbers.length;i++){
+				if ($current.find('.title').text().indexOf(groupInfo[groupNumbers[i]].name) > -1){
+					$current
+						.find('.summoner-name')
+							.css('color',groupInfo[groupNumbers[i]].color)
+						.end()
+						.find('.title')
+							.css('color','#6dc0cd')
+							.closest('.profile-hover')
+								.addClass('top-bar')
+								.css('border-top-color',groupInfo[groupNumbers[i]].color);
+					if ($current.closest('.top').find('img').attr('src').indexOf('/NA/Wuks.png') > -1){
+						$current
+							.find('.title')
+								.text('Ohana Means Family');
+					}
+					return;
+				}
+			}
+		});
+	}
+	
 	function cacheResponse(APIresponse,callback,itemKey,currentItem){
 		if (callback.name === 'applyUserGroups'){
-			APIresponse = JSON.parse(APIresponse).application.metadata;
+			/*APIresponse = JSON.parse(APIresponse).application.metadata;
 			groups = JSON.stringify(APIresponse.groups);
 			groupsUser = JSON.stringify(APIresponse.groupsUser);
-			APIresponse = `{"groups": ${groups}, "groupsUser": ${groupsUser}}`;
+			APIresponse = `{"groups": ${groups}, "groupsUser": ${groupsUser}}`;*/
 		} else if(callback.name === 'applyRioterProfile'){
 			APIresponse = JSON.parse(APIresponse).user;
 			if(APIresponse.profile){
@@ -387,80 +461,6 @@
 		setTimeout(function() {
 			clearInterval(intervalID);
 		}, 5000);
-	}
-	
-	function applyUserGroups(groupData){
-		groupData = JSON.parse(groupData);
-		var groupMemberList = Object.keys(groupData.groupsUser);
-		var groupMemberData = groupData.groupsUser;
-		var groupInfo = groupData.groups;
-		$('a.profile-hover:not(.cka)').each(function(){
-			var $current = $(this);
-			this.className += ' cka';
-			var apolloID = $current.attr('data-apollo-pvpnet-id');
-			if(!$current.parent().hasClass('isRioter')){
-				// Sets Non-Rioter Flares
-				for(var i=groupMemberList.length-1;i>-1;i-=1){
-					if(apolloID === groupMemberList[i].split(':')[1]){
-						var currentGroup = groupInfo[groupMemberData[groupMemberList[i]]];
-						$current
-							.parents('.byline:not(.discussion-footer)')
-								.find('.inline-profile:first')
-									.after(`<span class='tags' style='background-color:${currentGroup.color}'>${currentGroup.name}</span>`)
-								.end()
-							.end()
-							.closest('.nested-comment')
-								.find('.masthead:first')
-									.append(`<span class='ttriangle' style='border-top: 25px solid ${currentGroup.color}'></span>`)
-								.end()
-							.end()
-							.closest('.nested-comment:not(.glow):not(.flat)')
-								.attr('style',`border-top:1px solid ${currentGroup.color}`)
-							.end()
-							.css('color',currentGroup.color);
-					}
-				}
-			} else {
-				// Sets Rioter Titles
-				if (storageAvailable('sessionStorage')){ // sessionStorage compatible
-					if (!sessionStorage.getItem(`${region}${lang}_${apolloID}`)){ // and is not defined
-						pullRioterProfiles($current);
-					} else { // is defined
-						var rioterProfile = sessionStorage.getItem(`${region}${lang}_${apolloID}`); // Pull from sessionStorage
-						applyRioterProfile(rioterProfile,$current);
-					}
-				} else { // not sessionStorage compatible
-					pullRioterProfiles($current);
-				}
-			}			
-		});
-		
-		
-		// We use the .each function to resolve a bug that applies colors to other
-		// users if they hover over another user quick enough.
-		$('.information-container').each(function(){
-			var $current = $(this);
-			var groupNumbers = Object.keys(groupInfo);
-			for(var i=0;i<groupNumbers.length;i++){
-				if ($current.find('.title').text().indexOf(groupInfo[groupNumbers[i]].name) > -1){
-					$current
-						.find('.summoner-name')
-							.css('color',groupInfo[groupNumbers[i]].color)
-						.end()
-						.find('.title')
-							.css('color','#6dc0cd')
-							.closest('.profile-hover')
-								.addClass('top-bar')
-								.css('border-top-color',groupInfo[groupNumbers[i]].color);
-					if ($current.closest('.top').find('img').attr('src').indexOf('/NA/Wuks.png') > -1){
-						$current
-							.find('.title')
-								.text('Ohana Means Family');
-					}
-					return;
-				}
-			}
-		});
 	}
 	
 	function IndexVoting(){

@@ -44,12 +44,20 @@ body .backdrop .magic {background-image:url(https://lolstatic-a.akamaihd.net/apo
 
 /** Sets styling for locked threads **/
 .locked {
-	background-image:url(https://boards.oce.leagueoflegends.com/images/sprite-master-f092f118123c35787b367f855ea0125b.png);
-	background-position:-204px -142px;
+	background-image:url(https://boards.na.leagueoflegends.com/images/sprite-master-f092f118123c35787b367f855ea0125b.png);
+	background-position:-203px -143px;
 	width:24px;
 	height:34px;
 	margin:0px auto;
 }
+.voting-locked {
+	background-image:url(https://boards.na.leagueoflegends.com/images/sprite-master-f092f118123c35787b367f855ea0125b.png);
+	background-position:3px -344px;
+	width:24px;
+	height:34px;
+	margin:0px auto;
+}
+
 /** Sets the border colors of all containers on Boards Index  and Threads **/
 body.apollo .content .discussion-list.sticky,body.apollo .content .discussion-list.box.main,.new-discussion-box.box,#search-form,#navigation-container,#board-info,.discussion.box.main.glow,#red-tracker {border:1px solid #063f4c}
 /** Larger effective text area for OP's **/
@@ -420,7 +428,13 @@ span.badge.b-s07gold-rankedflextt {background-image:url("https://cdn.leagueofleg
 span.badge.b-s07plat {display:none!important}
 */
 
-
+.profile-hover.top-bar {
+	border-width: 4px;
+	border-top-style: solid;
+	border-right:0;
+	border-bottom: 0;
+	border-left: 0;
+}
 
 @media screen and (max-width:700px) {
 	.nested-comment {padding:10px 0px 4px 4px}

@@ -272,13 +272,9 @@
 	function cacheResponse(APIresponse,callback,itemKey,currentItem){
 		if (callback.name === 'applyUserGroups'){
 			APIresponse = JSON.parse(APIresponse).application.metadata;
-			delete APIresponse.c_bgi;
-			delete APIresponse.c_si;
-			delete APIresponse.c_sil;
-			delete APIresponse.c_hi;
-			delete APIresponse.c_hil;
-			delete APIresponse.ff;
-			APIresponse = JSON.stringify(APIresponse);
+			groups = JSON.stringify(APIresponse.groups);
+			groupsUser = JSON.stringify(APIresponse.groupsUser);
+			APIresponse = `{"groups": ${groups}, "groupsUser": ${groupsUser}}`;
 		} else if(callback.name === 'applyRioterProfile'){
 			APIresponse = JSON.parse(APIresponse).user;
 			if(APIresponse.profile){
@@ -540,7 +536,6 @@
 	}
 	
 	function renderComment(commentData,currentItem){
-		console.log(commentData);
 		commentData = JSON.parse(commentData);
 		var message = commentData.message;
 		var commentId = commentData.id;

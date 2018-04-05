@@ -97,7 +97,6 @@
 	function apiRequestQueue(requestURI,currentItem,callback){
 		let discId = currentItem.attr('data-discussion-id');
 		var b = {'requestURI': requestURI, 'currentItem': currentItem, 'callback': callback};
-		//currentItem.css('backgroundColor','green');
 		globals.GLOB.queueStack.push(b);
 	}
 	
@@ -113,6 +112,12 @@
 				var appId = currentItem.attr('data-application-id');
 				var discId = currentItem.attr('data-discussion-id');
 				var itemKey = `${appId}_${discId}`;
+			} else if(callback.name === 'renderComment'){
+				var URIparts = requestURI.split('/');
+				var appId = URIparts[5];
+				var discId = URIparts[7];
+				var commentId = URIparts[9];
+				var itemKey = `${appId}_${discId}_${commentId}`;
 			}
 			CORSrequest(requestURI,callback,itemKey,currentItem);
 		}
@@ -156,7 +161,8 @@
 		threadInfo = JSON.parse(threadInfo);
 		var pinned = threadInfo.pinned;
 		var commentsEnabled = threadInfo.commentCreationEnabled;
-		if(!commentsEnabled && currentItem.find('.voting:not(:has(.pin))').length === 0){
+		var test = currentItem.find('.voting:not(:has(.pin))').length;
+		if(!commentsEnabled && currentItem.find('.voting:has(.pin)').length === 0){
 			currentItem.find('.voting').html('<div class=\'locked\'></div>');
 		}
 		if(pinned !== 'undefined'){
@@ -166,11 +172,9 @@
 				}
 			}
 		}
-		//currentItem.css('backgroundColor','red');
 	}
 	
 	function applyRioterProfile(title,currentItem){
-		console.log(title);
 		if (title !== 'undefined'){
 			currentItem.parents('.byline:not(.discussion-footer)').find(".inline-profile:first").after(`<span class='tags crioter'>${title}</span>`);
 		}
@@ -213,12 +217,28 @@
 			delete APIresponse.ff;
 			APIresponse = JSON.stringify(APIresponse);
 		} else if(callback.name === 'applyRioterProfile'){
-			APIresponse = JSON.parse(APIresponse).user.profile.data.title;
+			APIresponse = JSON.parse(APIresponse).user;
+			if(APIresponse.profile){
+				APIresponse = APIresponse.profile.data.title;
+			} else {
+				APIresponse = undefined;
+			}
 		} else if(callback.name === 'applyThreadFlare'){
 			APIresponse = JSON.parse(APIresponse);
 			var pinned = APIresponse.discussion.content.pinned;
 			var commentEnabled = APIresponse.discussion.commentCreationEnabled;
 			APIresponse = `{"pinned": "${pinned}", "commentCreationEnabled": ${commentEnabled}}`;
+		} else if(callback.name === 'renderComment'){
+			APIresponse = JSON.parse(APIresponse);
+			var message = JSON.stringify(APIresponse.message);
+			console.log(message);
+			console.log(JSON.stringify(message));
+			var deleted = APIresponse.deleted;
+			var userName = APIresponse.user.name;
+			var userRealm = APIresponse.user.realm;
+			var id = APIresponse.id;
+			APIresponse = `{"message": ${message}, "userName": "${userName}", "userRealm": "${userRealm}", "deleted": ${deleted}, "id": "${id}"}`;
+			console.log(APIresponse);
 		}
 		globals.GLOB[itemKey] = APIresponse;
 		if (storageAvailable('sessionStorage')) {
@@ -397,6 +417,7 @@
 			} else if(vote === 'down'){
 				$this.css('border-left','2px solid #e23636');
 			} else if(vote == undefined){
+				console.log($this.has('.pin'));
 				$this.html('<div class=\'voting-locked\'></div>');
 			}
 			if(vote !== undefined){
@@ -430,69 +451,68 @@
 	}
 
 	function commentParent(){
-		//https://apollo.na.leagueoflegends.com/apollo/applications/A7LBtoKc/discussions/na3Ko02t/comment/001c0000
-		//apollo request format
 		var thread = $('#discussion').find('li.view-in-mod-tool a').attr('href').split('/');
 		var appId = thread[4];
 		var discId = thread[6];
 		$('.nested-comment:not(.isChild):not(.isDeleted)').each(function(){
 			this.className += ' isChild';
-			$this = $(this);
-			var commentId = $this.attr('id');
+			currentItem = $(this);
+			var commentId = currentItem.attr('id');
 			if(undefined !== commentId && commentId.length){
 				if(commentId.length > 12){
 					var l = commentId.slice(8,-4);
-					var requestURI = `https://apollo.${region}.leagueoflegends.com/apollo/applications/{$appId}/discussions/${discId}/comment/${l}`;
-					
-					```var apolloID = currentItem.attr('data-apollo-pvpnet-id');
-					var userRegion = currentItem.attr('data-apollo-pvpnet-realm');
-					let requestURI = https://apollo.${region}.leagueoflegends.com/apollo/users/${userRegion}/${apolloID};
-					if(!xhr){
-						apiRequestQueue(requestURI,currentItem,applyRioterProfile);
-						return;
+					var requestURI = `https://apollo.${region}.leagueoflegends.com/apollo/applications/${appId}/discussions/${discId}/comment/${l}`;
+					if (storageAvailable('sessionStorage')){
+						if (!sessionStorage.getItem(`${region}${lang}_${appId}_${discId}_${l}`)){
+							pullCommentData(requestURI,currentItem);
+						} else {
+							var commentData = sessionStorage.getItem(`${region}${lang}_${appId}_${discId}_${l}`);
+							renderComment(commentData,currentItem);
+						}
+					} else {
+						pullCommentData(requestURI,currentItem);
 					}
-					CORSrequest(requestURI,applyRioterProfile,apolloID,currentItem);```
 				}
 			}
 		});
-		
-		
-		/*
-		var tArray = $("#discussion").find("li.view-in-mod-tool a").attr("href").split('/');
-		var appID = tArray[4];
-		var discID = tArray[6];
-		$(".nested-comment:not(.isChild):not(.isDeleted)").each(function(){
-			this.className += " isChild";
-			var n1 = $(this).attr("id");
-			if(undefined !== n1 && n1.length){
-				if (n1.length > 12){
-					l = n1.slice(8,-4);
-					var z = `https://boards.${region}.leagueoflegends.com/api/${appID}/discussions/${discID}/comment/${l}.json`; // we're going to utilize the apollo bridge and apollo api instead of the boards api proxy; we're getting a decent number of errors when pulling some comments and it returning an error 500/internal
-					var comment = this;
-					var xmlhttp = new XMLHttpRequest();
-					xmlhttp.onreadystatechange = function() {
-						if (this.readyState == 4 && this.status === 200) {
-							var myObj = JSON.parse(this.responseText);
-							var Bname = myObj.user.name;
-							var Brealm = myObj.user.realm;
-							var Bmsg = myObj.message;
-							if(myObj.deleted === true){
-								Bmsg = `<span style="color:#fff;background-color:#9e2020;padding:3px 10px;border-radius:5px;display:inline-flex">Sorry! The comment you have requested is no longer available.</span>`;
-							}
-							$(comment).find(".body").prepend("<div class='op-ref' style='display:none'><p>"+Bmsg+"</p><a class='footer' href='?show=flat&comment="+l+"'>GO TO COMMENT</a></div>").end()
-								.find(".header.byline.clearfix").append("<span class='op-ref-bar'>In response to: <a href=\'https://boards."+region+".leagueoflegends.com/"+lang+"/player/"+Brealm+"/"+Bname+"\'>"+Bname+"</a> ("+Brealm+") (<a class=\'toggle-op noshow\' href=\'javascript:;\' onclick=\'$(this).hasClass(\"noshow\") ? ($(this).parent().parent().parent().find(\".op-ref\").attr(\"style\", \"display:block\"), $(this).attr(\"class\", \"toggle-op yesshow\"), $(this).text(\"hide\")) : ($(this).parent().parent().parent().find(\".op-ref\").attr(\"style\", \"display:none\"), $(this).attr(\"class\", \"toggle-op noshow\"), $(this).text(\"show\"));\'>show</a>)</span>");
-						}
-					};
-					xmlhttp.open("GET", z, true);
-					xmlhttp.send();
-				}
-			}
-		});*/
 	}
-
 	
-
+	function renderComment(commentData,currentItem){
+		console.log(commentData);
+		commentData = JSON.parse(commentData);
+		var message = commentData.message;
+		var commentId = commentData.id;
+		var userRealm = commentData.userRealm;
+		var userName = commentData.userName;
+		
+		if(commentData.deleted){
+			`<span style="color:#fff;background-color:#9e2020;padding:3px 10px;border-radius:5px;display:inline-flex">Sorry! The comment you have requested is no longer available.</span>`
+		}
+		currentItem
+			.find('.body')
+				.prepend(`<div class=\'op-ref\' style=\'display:none\'><p>${message}</p><a class=\'footer\' href=\'?show=flat&comment=${commentId}\'>GO TO COMMENT</a></div>`)
+			.end()
+			.find('.header.byline.clearfix')
+				.append(`<span class=\'op-ref-bar\'>Response To: <a href=\'https://boards.${region}.leagueoflegends.com/${lang}/player/${userRealm}/${userName}\'>${userName}</a> (${userRealm})
+				(<a class=\'toggle-op noshow\' href=\'javascript:;\' 
+				onclick=\"$(this).hasClass(\'noshow\') ? ($(this).parent().parent().parent().find(\'.op-ref\').attr(\'style\',\'display:block\'),
+				$(this).attr(\'class\',\'toggle-op yesshow\'), 
+				$(this).text(\'hide\')) : ($(this).parent().parent().parent().find(\'.op-ref\').attr(\'style\',\'display:none\'), $(this).attr(\'class\',\'toggle-op noshow\'), $(this).text(\'show\'));\">show</a>)</span>`);
+	}
 	
+	function pullCommentData(requestURI,currentItem){
+		var URIparts = requestURI.split('/');
+		var appId = URIparts[5];
+		var discId = URIparts[7];
+		var commentId = URIparts[9];
+		if(!xhr){
+			apiRequestQueue(requestURI,currentItem,renderComment);
+			return;
+		}
+		var itemKey = `${appId}_${discId}_${commentId}`;
+		CORSrequest(requestURI,renderComment,itemKey,currentItem);
+	}
+		
 	// Mozilla's Feature-detecting Storage function
 	// From: https://developer.mozilla.org/en-US/docs/Web/API/Web_Storage_API/Using_the_Web_Storage_API
 	function storageAvailable(type) {

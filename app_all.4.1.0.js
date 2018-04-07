@@ -84,14 +84,14 @@
 		show = "Mutat";
 		hide = "Elrejt";
 		responseTo = responseTo;
-	} else if(lang === 'ro'){
+	} else if(lang === 'ro'){ // Localization Confirmed
 		commentDisable_1 = "Această postare a fost arhivată.";
 		commentDisable_2 = "Creezi o nouă postare?";
 		goToComment = "MERGI LA COMENTARIU";
 		commentDeleted = "Ne pare rău! Comentariul pe care îl cauți nu mai este disponibil.";
-		show = show;
-		hide = hide;
-		responseTo = responseTo;
+		show = "Arată";
+		hide = "Ascunde";
+		responseTo = "Răspunde-i lui";
 	} else if(lang === 'pt'){
 		commentDisable_1 = "Esta discussão foi arquivada.";
 		commentDisable_2 = "Criar uma nova discussão em vez disso?";

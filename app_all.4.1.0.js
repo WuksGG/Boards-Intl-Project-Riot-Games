@@ -10,9 +10,11 @@
  *
  * Copyright (c) 2018 Michael Chan
  */
-(function($,globals,sessionStorage){
+(function($,globals,localStorage){
 	// Define globally scoped object
 	globals.GLOB = {};
+	var currentTime = (new Date).getTime();
+	var expireTime = currentTime + (1000 * 60 * 60);
 	
 	// Initialize & set variables
 	var isBoardIndex;
@@ -23,6 +25,18 @@
 	var region = window.location.href.split('.')[1];
 	var lang = window.location.href.split('/')[3];
 	
+	var garbageCollection = currentTime + (1000 * 60 * 60 * 24);
+	if (storageAvailable('localStorage')) {
+		if (!localStorage.getItem(`${region}${lang}_persist`)) {
+			localStorage.setItem(`${region}${lang}_persist`,garbageCollection);
+		} else {
+			var persistTime = localStorage.getItem(`${region}${lang}_persist`);
+			if(currentTime > persistTime){ // expire all data
+				localStorage.clear();
+				localStorage.setItem(`${region}${lang}_persist`,garbageCollection);
+			}
+		}
+	}
 	
 	if(document.getElementsByClassName('new-discussion-box')[0].getElementsByTagName('a')[0]){
 		var createLink = document.getElementsByClassName('new-discussion-box')[0].getElementsByTagName('a')[0].getAttribute('href');
@@ -33,56 +47,102 @@
 	// LOCALIZATION
 	var commentDisable_1;
 	var commentDisable_2;
+	var commentDeleted = 'Sorry! The comment you have requested is no longer available.';
 	var goToComment;
+	var show = 'Show';
+	var hide = 'Hide';
+	var responseTo = 'Response To';
 	if(lang === 'en'){
 		commentDisable_1 = "This thread has been archived."; 
 		commentDisable_2 = "Create a new thread instead?";
 		goToComment = "GO TO COMMENT";
+		commentDeleted = "Sorry! The comment you have requested is no longer available.";
+		show = "Show";
+		hide = "Hide";
+		responseTo = 'Response To';
 	} else if(lang === 'pl'){
 		commentDisable_1 = "Ten wątek został zamknięty.";
 		commentDisable_2 = "Aby kontynuować dyskusję, stwórz nowy wątek.";
 		goToComment = "PRZEJDŹ DO KOMENTARZA";
+		commentDeleted = "Przepraszamy! Komentarz do którego chcesz uzyskać dostęp jest aktualnie niedostępny.";
+		show = "Pokaż";
+		hide = "Ukryj";
+		responseTo = responseTo;
 	} else if(lang === 'es'){
 		commentDisable_1 = "Esta discusión ha sido archivada."
 		commentDisable_2 = "¿Crear una nueva discusión en su lugar?";
 		goToComment = "IR A COMENTARIO";
+		commentDeleted = "¡Lo sentimos! El comentario que intentas ver ya no esta disponible.";
+		show = "Mostrar";
+		hide = "Esconder";
+		responseTo = responseTo;
 	} else if(lang === 'hu'){
 		commentDisable_1 = "A téma archiválva lett.";
 		commentDisable_2 = "Létrehozol inkább egy új témát?";
 		goToComment = "VISSZA A TÉMÁHOZ";
+		commentDeleted = "A hozzászólás, amelyet meg szeretnél tekinteni, már nem elérhető. Sajnáljuk!";
+		show = "Mutat";
+		hide = "Elrejt";
+		responseTo = responseTo;
 	} else if(lang === 'ro'){
 		commentDisable_1 = "Această postare a fost arhivată.";
 		commentDisable_2 = "Creezi o nouă postare?";
 		goToComment = "MERGI LA COMENTARIU";
+		commentDeleted = "Ne pare rău! Comentariul pe care îl cauți nu mai este disponibil.";
+		show = show;
+		hide = hide;
+		responseTo = responseTo;
 	} else if(lang === 'pt'){
 		commentDisable_1 = "Esta discussão foi arquivada.";
 		commentDisable_2 = "Criar uma nova discussão em vez disso?";
 		goToComment = "IR PARA COMENTÁRIO";
+		commentDeleted = commentDeleted;
+		show = show;
+		hide = hide;
+		responseTo = responseTo;
 	} else if(lang === 'fr'){
 		commentDisable_1 = "Cette discussion a été archivée.";
 		commentDisable_2 = "Voulez vous créer un nouveau sujet ?";
 		goToComment = "SE RENDRE AU COMMENTAIRE";
+		commentDeleted = commentDeleted;
+		show = show;
+		hide = hide;
+		responseTo = responseTo;
 	} else if(lang === 'it'){
 		commentDisable_1 = "Questa discussione è stata archiviata.";
 		commentDisable_2 = "Vuoi creare una nuova discussione?";
 		goToComment = "VAI AL COMMENTO";
+		commentDeleted = "Spiacenti! Il commento che vorresti visualizzare non è più disponibile.";
+		show = "Mostra";
+		hide = "Nascondi";
+		responseTo = responseTo;
 	} else if(lang === 'de'){
 		commentDisable_1 = "Diese Diskussion wurde archiviert.";
 		commentDisable_2 = "Soll eine neue Diskussion erstellt werden?";
 		goToComment = "ZUM KOMMENTAR";
+		show = show;
+		hide = hide;
+		responseTo = responseTo;
 	} else if(lang === 'el'){
 		commentDisable_1 = "Αυτή η συζήτηση έχει μπει στο αρχείο.";
 		commentDisable_2 = "Θέλεις να δημιουργήσεις μια νέα συζήτηση";
 		goToComment = "Πηγαίντε στο σχόλιο";
-	} else if(lang === 'cs'){
+		show = show;
+		hide = hide;
+		responseTo = responseTo;
+	} else if(lang === 'cs'){ // Localization Confirmed
 		commentDisable_1 = "Tato diskuze byla archivována.";
 		commentDisable_2 = "Chceš vytvořit novou diskuzi?";
 		goToComment = "PŘEJÍT NA KOMENTÁŘ";
+		commentDeleted = "Omlouváme se, ale požadovaný komentář již není k dispozici.";
+		show = "Zobrazit";
+		hide = "Skrýt";
+		responseTo = "Reakce na";
 	}
 	
 	function archivedThread(){
 		if(!isBoardIndex && document.getElementsByClassName('cant-comment-warning')[1] && createLink){
-			document.getElementsByClassName('cant-comment-warning')[1].innerHTML = `<span class=\'icon-lock-brown\'></span>${commentDisable_1} <a href=\'${createLink}\'>${commentDisable_2}</a>`;
+			document.getElementsByClassName('cant-comment-warning')[1].innerHTML = `<span class=\'icon-lock-brown\'></span>${commentDisable_1} <a class=\'requires-auth\' href=\'${createLink}\'>${commentDisable_2}</a>`;
 		}
 	}
 	
@@ -188,12 +248,17 @@
 			//boardIndexFlares($(this));
 			var appId = currentItem.attr('data-application-id');
 			var discId = currentItem.attr('data-discussion-id');
-			if (storageAvailable('sessionStorage')){
-				if (!sessionStorage.getItem(`${region}${lang}_${appId}_${discId}`)){
+			if (storageAvailable('localStorage')){
+				if (!localStorage.getItem(`${region}${lang}_${appId}_${discId}`)){
 					pullThread(currentItem);
 				} else {
-					var threadInfo = sessionStorage.getItem(`${region}${lang}_${appId}_${discId}`);
-					applyThreadFlare(threadInfo,currentItem);
+					var threadInfo = localStorage.getItem(`${region}${lang}_${appId}_${discId}`);
+					var itemExpire = JSON.parse(threadInfo).expire;
+					if(currentTime > itemExpire){
+						pullThread(currentItem);
+					} else {
+						applyThreadFlare(threadInfo,currentItem);
+					}
 				}
 			} else {
 				pullThread(currentItem);
@@ -221,7 +286,7 @@
 		var commentsEnabled = threadInfo.commentCreationEnabled;
 		var test = currentItem.find('.voting:not(:has(.pin))').length;
 		if(!commentsEnabled && currentItem.find('.voting:has(.pin)').length === 0){
-			currentItem.find('.voting').html('<div class=\'locked\'></div>');
+			currentItem.find('.voting').html('<div class=\'locked\' title=\'Commenting is disabled\'></div>');
 		}
 		if(pinned !== 'undefined'){
 			if(!currentItem.hasClass('has-rioter-comments')){
@@ -302,14 +367,19 @@
 				}
 			} else {
 				// Sets Rioter Titles
-				if (storageAvailable('sessionStorage')){ // sessionStorage compatible
-					if (!sessionStorage.getItem(`${region}${lang}_${apolloID}`)){ // and is not defined
+				if (storageAvailable('localStorage')){ // localStorage compatible
+					if (!localStorage.getItem(`${region}${lang}_${apolloID}`)){ // and is not defined
 						pullRioterProfiles($current);
 					} else { // is defined
-						var rioterProfile = sessionStorage.getItem(`${region}${lang}_${apolloID}`); // Pull from sessionStorage
-						applyRioterProfile(rioterProfile,$current);
+						var rioterProfile = localStorage.getItem(`${region}${lang}_${apolloID}`); // Pull from localStorage
+						var itemExpire = JSON.parse(rioterProfile).expire;
+						if(currentTime > itemExpire){
+							pullRioterProfiles($current);
+						} else {
+							applyRioterProfile(rioterProfile,$current);
+						}
 					}
-				} else { // not sessionStorage compatible
+				} else { // not localStorage compatible
 					pullRioterProfiles($current);
 				}
 			}			
@@ -371,10 +441,16 @@
 			APIresponse = `{"message": ${message}, "userName": "${userName}", "userRealm": "${userRealm}", "deleted": ${deleted}, "id": "${id}"}`;
 		}
 		globals.GLOB[itemKey] = APIresponse;
-		if (storageAvailable('sessionStorage')) {
-			if (!sessionStorage.getItem(`${region}${lang}_${itemKey}`)) {
-				sessionStorage.setItem(`${region}${lang}_${itemKey}`,APIresponse);
-			}
+		if (storageAvailable('localStorage')) {
+			APIresponse = JSON.parse(APIresponse);
+			APIresponse['expire'] = expireTime;
+			APIresponse = JSON.stringify(APIresponse);
+			localStorage.setItem(`${region}${lang}_${itemKey}`,APIresponse);
+			/*if (!localStorage.getItem(`${region}${lang}_${itemKey}`)) {
+				localStorage.setItem(`${region}${lang}_${itemKey}`,APIresponse);
+			} else if({
+				localStorage.setItem(`${region}${lang}_${itemKey}`,APIresponse);
+			}*/
 		}
 		callback(APIresponse,currentItem);
 		//CORSrequest(requestURI,applyRioterProfile,apolloID,currentItem);
@@ -400,15 +476,20 @@
 	
 	// Cache Check!
 	// Initialize Group Info Pulling
-	if (storageAvailable('sessionStorage')){ // sessionStorage compatible
-		if (!sessionStorage.getItem(`${region}${lang}_groupData`)){ // and is not defined
+	if (storageAvailable('localStorage')){ // localStorage compatible
+		if (!localStorage.getItem(`${region}${lang}_groupData`)){ // and is not defined
 			pullUserGroups();
 		} else { // is defined
-			groupData = sessionStorage.getItem(`${region}${lang}_groupData`); // Pull from sessionStorage
-			globals.GLOB.groupData = groupData;
-			applyUserGroups(groupData);
+			groupData = localStorage.getItem(`${region}${lang}_groupData`); // Pull from localStorage
+			var itemExpire = JSON.parse(groupData).expire;
+			if(currentTime > itemExpire){
+				pullUserGroups();
+			} else {
+				globals.GLOB.groupData = groupData;
+				applyUserGroups(groupData);
+			}
 		}
-	} else { // not sessionStorage compatible
+	} else { // not localStorage compatible
 		pullUserGroups(); // We'll need to utilize API call and not use API response caching.
 	}
 	
@@ -476,7 +557,7 @@
 			} else if(vote === 'down'){
 				$this.css('border-left','2px solid #e23636');
 			} else if(vote == undefined){
-				$this.html('<div class=\'voting-locked\'></div>');
+				$this.html('<div class=\'voting-locked\' title=\'Voting is disabled\'></div>');
 			}
 			if(vote !== undefined){
 				var suffix;
@@ -520,12 +601,17 @@
 				if(commentId.length > 12){
 					var l = commentId.slice(8,-4);
 					var requestURI = `https://apollo.${region}.leagueoflegends.com/apollo/applications/${appId}/discussions/${discId}/comment/${l}`;
-					if (storageAvailable('sessionStorage')){
-						if (!sessionStorage.getItem(`${region}${lang}_${appId}_${discId}_${l}`)){
+					if (storageAvailable('localStorage')){
+						if (!localStorage.getItem(`${region}${lang}_${appId}_${discId}_${l}`)){
 							pullCommentData(requestURI,currentItem);
 						} else {
-							var commentData = sessionStorage.getItem(`${region}${lang}_${appId}_${discId}_${l}`);
-							renderComment(commentData,currentItem);
+							var commentData = localStorage.getItem(`${region}${lang}_${appId}_${discId}_${l}`);
+							var itemExpire = JSON.parse(commentData).expire;
+							if(currentTime > itemExpire){
+								pullCommentData(requestURI,currentItem);
+							} else {
+								renderComment(commentData,currentItem);
+							}
 						}
 					} else {
 						pullCommentData(requestURI,currentItem);
@@ -542,18 +628,18 @@
 		var userRealm = commentData.userRealm;
 		var userName = commentData.userName;
 		if(commentData.deleted){
-			message = `<span style="color:#fff;background-color:#9e2020;padding:3px 10px;border-radius:5px;display:inline-flex">Sorry! The comment you have requested is no longer available.</span>`
+			message = `<span style="color:#fff;background-color:#9e2020;padding:3px 10px;border-radius:5px;display:inline-flex">${commentDeleted}</span>`
 		}
 		currentItem
 			.find('.body')
 				.prepend(`<div class=\'op-ref\' style=\'display:none\'><p>${message}</p><a class=\'footer\' href=\'?show=flat&comment=${commentId}\'>${goToComment}</a></div>`)
 			.end()
 			.find('.header.byline.clearfix')
-				.append(`<span class=\'op-ref-bar\'>Response To: <a href=\'https://boards.${region}.leagueoflegends.com/${lang}/player/${userRealm}/${userName}\'>${userName}</a> (${userRealm})
+				.append(`<span class=\'op-ref-bar\'>${responseTo}: <a href=\'https://boards.${region}.leagueoflegends.com/${lang}/player/${userRealm}/${userName}\'>${userName}</a> (${userRealm})
 				(<a class=\'toggle-op noshow\' href=\'javascript:;\' 
 				onclick=\"$(this).hasClass(\'noshow\') ? ($(this).parent().parent().parent().find(\'.op-ref\').attr(\'style\',\'display:block\'),
 				$(this).attr(\'class\',\'toggle-op yesshow\'), 
-				$(this).text(\'hide\')) : ($(this).parent().parent().parent().find(\'.op-ref\').attr(\'style\',\'display:none\'), $(this).attr(\'class\',\'toggle-op noshow\'), $(this).text(\'show\'));\">show</a>)</span>`);
+				$(this).text(\'${hide}\')) : ($(this).parent().parent().parent().find(\'.op-ref\').attr(\'style\',\'display:none\'), $(this).attr(\'class\',\'toggle-op noshow\'), $(this).text(\'${show}\'));\">${show}</a>)</span>`);
 	}
 	
 	function pullCommentData(requestURI,currentItem){
@@ -595,4 +681,4 @@
 		}
 	}
 	
-}(jQuery,this,this.sessionStorage));
+}(jQuery,this,this.localStorage));

@@ -45,14 +45,14 @@
 	}
 	
 	// LOCALIZATION
-	var commentDisable_1;
-	var commentDisable_2;
+	var commentDisable_1 = 'This thread has been archived.';
+	var commentDisable_2 = 'Create a new thread instead?';
 	var commentDeleted = 'Sorry! The comment you have requested is no longer available.';
-	var goToComment;
+	var goToComment = 'GO TO COMMENT';
 	var show = 'Show';
 	var hide = 'Hide';
 	var responseTo = 'Response To';
-	if(lang === 'en'){
+	if(lang === 'en' || lang === 'en-us'){
 		commentDisable_1 = "This thread has been archived."; 
 		commentDisable_2 = "Create a new thread instead?";
 		goToComment = "GO TO COMMENT";
@@ -60,15 +60,15 @@
 		show = "Show";
 		hide = "Hide";
 		responseTo = 'Response To';
-	} else if(lang === 'pl'){
+	} else if(lang === 'pl'){ // Localization Confirmed
 		commentDisable_1 = "Ten wątek został zamknięty.";
 		commentDisable_2 = "Aby kontynuować dyskusję, stwórz nowy wątek.";
 		goToComment = "PRZEJDŹ DO KOMENTARZA";
 		commentDeleted = "Przepraszamy! Komentarz do którego chcesz uzyskać dostęp jest aktualnie niedostępny.";
 		show = "Pokaż";
 		hide = "Ukryj";
-		responseTo = responseTo;
-	} else if(lang === 'es'){
+		responseTo = "Odpowiedź na";
+	} else if(lang === 'es' || lang === 'es-mx' || lang === 'es-ar'){
 		commentDisable_1 = "Esta discusión ha sido archivada."
 		commentDisable_2 = "¿Crear una nueva discusión en su lugar?";
 		goToComment = "IR A COMENTARIO";
@@ -108,14 +108,14 @@
 		show = show;
 		hide = hide;
 		responseTo = responseTo;
-	} else if(lang === 'it'){
+	} else if(lang === 'it'){ // Localization Confirmed
 		commentDisable_1 = "Questa discussione è stata archiviata.";
 		commentDisable_2 = "Vuoi creare una nuova discussione?";
 		goToComment = "VAI AL COMMENTO";
 		commentDeleted = "Spiacenti! Il commento che vorresti visualizzare non è più disponibile.";
 		show = "Mostra";
 		hide = "Nascondi";
-		responseTo = responseTo;
+		responseTo = "In risposta a";
 	} else if(lang === 'de'){
 		commentDisable_1 = "Diese Diskussion wurde archiviert.";
 		commentDisable_2 = "Soll eine neue Diskussion erstellt werden?";
@@ -138,6 +138,22 @@
 		show = "Zobrazit";
 		hide = "Skrýt";
 		responseTo = "Reakce na";
+	} else if(lang === 'tr'){
+		commentDisable_1 = commentDisable_1;
+		commentDisable_2 = commentDisable_2;
+		goToComment = "Yoruma git";
+		commentDeleted = commentDeleted;
+		show = show;
+		hide = hide;
+		responseTo = responseTo;
+	} else if(lang === 'ru'){
+		commentDisable_1 = commentDisable_1;
+		commentDisable_2 = commentDisable_2;
+		goToComment = "ПЕРЕЙТИ К КОММЕНТАРИЮ";
+		commentDeleted = commentDeleted;
+		show = show;
+		hide = hide;
+		responseTo = responseTo;
 	}
 	
 	function archivedThread(){
@@ -582,6 +598,9 @@
 					} else if([4,5].indexOf(totalVotes) > -1){
 						color = '#86bf00';
 					}
+				}
+				if(totalVotes > 999 || totalVotes < -999){
+					totalVotes = (totalVotes/1000).toFixed(1) + 'k';
 				}
 				$this.html(`<div class=\'riot-apollo voting\'><ul class=\'riot-voting\'><li></li><li class=\'total-votes\' style=\'color:${color}\'>${totalVotes}</li><li></li><li>${suffix}</li></ul></div>`);
 			}

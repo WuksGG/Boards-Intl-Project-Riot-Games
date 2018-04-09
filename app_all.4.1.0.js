@@ -68,22 +68,22 @@
 		show = "Pokaż";
 		hide = "Ukryj";
 		responseTo = "Odpowiedź na";
-	} else if(lang === 'es' || lang === 'es-mx' || lang === 'es-ar'){
+	} else if(lang === 'es' || lang === 'es-mx' || lang === 'es-ar' || lang == 'es-es'){
 		commentDisable_1 = "Esta discusión ha sido archivada."
 		commentDisable_2 = "¿Crear una nueva discusión en su lugar?";
 		goToComment = "IR A COMENTARIO";
 		commentDeleted = "¡Lo sentimos! El comentario que intentas ver ya no esta disponible.";
 		show = "Mostrar";
 		hide = "Esconder";
-		responseTo = responseTo;
-	} else if(lang === 'hu'){
+		responseTo = "En respuesta a";
+	} else if(lang === 'hu'){ // Localization Confirmed
 		commentDisable_1 = "A téma archiválva lett.";
 		commentDisable_2 = "Létrehozol inkább egy új témát?";
 		goToComment = "VISSZA A TÉMÁHOZ";
 		commentDeleted = "A hozzászólás, amelyet meg szeretnél tekinteni, már nem elérhető. Sajnáljuk!";
 		show = "Mutat";
 		hide = "Elrejt";
-		responseTo = responseTo;
+		responseTo = "Válasz neki";
 	} else if(lang === 'ro'){ // Localization Confirmed
 		commentDisable_1 = "Această postare a fost arhivată.";
 		commentDisable_2 = "Creezi o nouă postare?";
@@ -92,7 +92,7 @@
 		show = "Arată";
 		hide = "Ascunde";
 		responseTo = "Răspunde-i lui";
-	} else if(lang === 'pt'){
+	} else if(lang === 'pt' || lang === 'pt-br'){
 		commentDisable_1 = "Esta discussão foi arquivada.";
 		commentDisable_2 = "Criar uma nova discussão em vez disso?";
 		goToComment = "IR PARA COMENTÁRIO";
@@ -100,7 +100,7 @@
 		show = show;
 		hide = hide;
 		responseTo = responseTo;
-	} else if(lang === 'fr'){
+	} else if(lang === 'fr' || lang === 'fr-fr'){
 		commentDisable_1 = "Cette discussion a été archivée.";
 		commentDisable_2 = "Voulez vous créer un nouveau sujet ?";
 		goToComment = "SE RENDRE AU COMMENTAIRE";
@@ -116,7 +116,7 @@
 		show = "Mostra";
 		hide = "Nascondi";
 		responseTo = "In risposta a";
-	} else if(lang === 'de'){
+	} else if(lang === 'de' || lang === 'de-de'){
 		commentDisable_1 = "Diese Diskussion wurde archiviert.";
 		commentDisable_2 = "Soll eine neue Diskussion erstellt werden?";
 		goToComment = "ZUM KOMMENTAR";

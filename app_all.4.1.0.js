@@ -14,7 +14,7 @@
 	// Define globally scoped object
 	globals.GLOB = {};
 	var currentTime = (new Date).getTime();
-	var expireTime = currentTime + (1000 * 60 * 60);
+	var expireTime = currentTime + (1000 * 60 * 60 * 0.5); // 30 minutes
 	
 	// Initialize & set variables
 	var isBoardIndex;

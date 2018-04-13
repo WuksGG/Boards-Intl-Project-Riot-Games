@@ -1,6 +1,6 @@
 /*!
  * League of Legends Boards Revamp Project (NA/OCE/EU)
- * Version: 4.1.0
+ * Version: 4.1.0.4
  * Requires: jQuery 2.1.0+
  *
  * Author: Michael 'Wuks' Chan
@@ -13,6 +13,19 @@
 (function($,globals,localStorage){
 	// Define globally scoped object
 	globals.GLOB = {};
+	globals.GLOB.queueStack = [];
+	if(document.getElementsByClassName('discussion-list-item').length > 0){
+		isBoardIndex = true;
+	} else {
+		isBoardIndex = false;
+		if (document.getElementById('comments').getElementsByClassName('muted').length !== 0){
+			isChronoView = true;
+		} else { isChronoView = false; }
+	}
+	if(document.getElementsByClassName('logged-in').length > 0){
+		isLoggedIn = true;
+	} else { isLoggedIn = false; }
+	var subBoard = document.getElementById('breadcrumbs').getElementsByTagName('h2')[0].innerText;
 	var currentTime = (new Date).getTime();
 	var expireTime = currentTime + (1000 * 60 * 60 * 0.5); // 30 minutes
 	
@@ -120,16 +133,16 @@
 		commentDisable_1 = "Diese Diskussion wurde archiviert.";
 		commentDisable_2 = "Soll eine neue Diskussion erstellt werden?";
 		goToComment = "ZUM KOMMENTAR";
-		show = show;
-		hide = hide;
-		responseTo = responseTo;
+		show = "Zeigen";
+		hide = "Verstecken";
+		responseTo = "Antwort an";
 	} else if(lang === 'el'){
 		commentDisable_1 = "Αυτή η συζήτηση έχει μπει στο αρχείο.";
 		commentDisable_2 = "Θέλεις να δημιουργήσεις μια νέα συζήτηση";
 		goToComment = "Πηγαίντε στο σχόλιο";
-		show = show;
-		hide = hide;
-		responseTo = responseTo;
+		show = "Εμφάνιση";
+		hide = "Απόκρυψη";
+		responseTo = "Απάντηση Στον/Στην";
 	} else if(lang === 'cs'){ // Localization Confirmed
 		commentDisable_1 = "Tato diskuze byla archivována.";
 		commentDisable_2 = "Chceš vytvořit novou diskuzi?";
@@ -157,24 +170,26 @@
 	}
 	
 	function archivedThread(){
-		if(!isBoardIndex && document.getElementsByClassName('cant-comment-warning')[1] && createLink){
-			document.getElementsByClassName('cant-comment-warning')[1].innerHTML = `<span class=\'icon-lock-brown\'></span>${commentDisable_1} <a class=\'requires-auth\' href=\'${createLink}\'>${commentDisable_2}</a>`;
+		var thread = $('#discussion').find('li.view-in-mod-tool a').attr('href').split('/');
+		var appId = thread[4];
+		var discId = thread[6];
+		let requestURI = `https://apollo.${region}.leagueoflegends.com/apollo/applications/${appId}/discussions/${discId}?page_size=0&`;
+		if (storageAvailable('localStorage')){
+			if (!localStorage.getItem(`${region}${lang}_${appId}_${discId}`)){
+				pullThread(archiveMsg,thread);
+			} else {
+				var threadInfo = localStorage.getItem(`${region}${lang}_${appId}_${discId}`);
+				var itemExpire = JSON.parse(threadInfo).expire;
+				if(currentTime > itemExpire){
+					pullThread(archiveMsg,thread);
+				} else {
+					archiveMsg(threadInfo);
+				}
+			}
+		} else {
+			pullThread(archiveMsg,thread);
 		}
 	}
-	
-	
-	if(document.getElementsByClassName('discussion-list-item').length > 0){
-		isBoardIndex = true;
-	} else {
-		isBoardIndex = false;
-		if (document.getElementById('comments').getElementsByClassName('muted').length !== 0){
-			isChronoView = true;
-		} else { isChronoView = false; }
-	}
-	if(document.getElementsByClassName('logged-in').length > 0){
-		isLoggedIn = true;
-	} else { isLoggedIn = false; }
-	var subBoard = document.getElementById('breadcrumbs').getElementsByTagName('h2')[0].innerText;
 	
 	// Define each Boards' API location
 	if(region === 'na'){
@@ -227,9 +242,8 @@
 	// Need to replace !xhr with a direct callback.
 	// We're going to create a request queue to minimize the number of active open function calls.
 	// // // resolved
-	globals.GLOB.queueStack = [];
+	
 	function apiRequestQueue(requestURI,currentItem,callback){
-		let discId = currentItem.attr('data-discussion-id');
 		var b = {'requestURI': requestURI, 'currentItem': currentItem, 'callback': callback};
 		globals.GLOB.queueStack.push(b);
 	}
@@ -252,6 +266,10 @@
 				var discId = URIparts[7];
 				var commentId = URIparts[9];
 				var itemKey = `${appId}_${discId}_${commentId}`;
+			} else if(callback.name === 'archiveMsg'){
+				var appId = currentItem[4];
+				var discId = currentItem[6];
+				var itemKey = `${appId}_${discId}`;
 			}
 			CORSrequest(requestURI,callback,itemKey,currentItem);
 		}
@@ -266,32 +284,44 @@
 			var discId = currentItem.attr('data-discussion-id');
 			if (storageAvailable('localStorage')){
 				if (!localStorage.getItem(`${region}${lang}_${appId}_${discId}`)){
-					pullThread(currentItem);
+					pullThread(applyThreadFlare,currentItem);
 				} else {
 					var threadInfo = localStorage.getItem(`${region}${lang}_${appId}_${discId}`);
 					var itemExpire = JSON.parse(threadInfo).expire;
 					if(currentTime > itemExpire){
-						pullThread(currentItem);
+						pullThread(applyThreadFlare,currentItem);
 					} else {
 						applyThreadFlare(threadInfo,currentItem);
 					}
 				}
 			} else {
-				pullThread(currentItem);
+				pullThread(applyThreadFlare,currentItem);
 			}
 		});
 	}
 	
-	function pullThread(currentItem){
-		var appId = currentItem.attr('data-application-id');
-		var discId = currentItem.attr('data-discussion-id');
+	function archiveMsg(threadData,currentItem){
+		commentsEnabled = JSON.parse(threadData).commentCreationEnabled;
+		if(!commentsEnabled && document.getElementsByClassName('cant-comment-warning')[1]){
+			document.getElementsByClassName('cant-comment-warning')[1].innerHTML = `<span class=\'icon-lock-brown\'></span>${commentDisable_1} <a class=\'requires-auth\' href=\'${createLink}\'>${commentDisable_2}</a>`;
+		}
+	}
+	
+	function pullThread(callback,currentItem){
+		if(callback.name === 'applyThreadFlare'){
+			var appId = currentItem.attr('data-application-id');
+			var discId = currentItem.attr('data-discussion-id');
+		} else {
+			var appId = currentItem[4];
+			var discId = currentItem[6];
+		}
 		let requestURI = `https://apollo.${region}.leagueoflegends.com/apollo/applications/${appId}/discussions/${discId}?page_size=0&`;
 		if(!xhr){
-			apiRequestQueue(requestURI,currentItem,applyThreadFlare);
+			apiRequestQueue(requestURI,currentItem,callback);
 			return;
 		}
 		var itemKey = `${appId}_${discId}`;
-		CORSrequest(requestURI,applyThreadFlare,itemKey,currentItem);
+		CORSrequest(requestURI,callback,itemKey,currentItem);
 	}
 	
 	function applyThreadFlare(threadInfo,currentItem){
@@ -311,7 +341,7 @@
 				// tn3qAbc8 = Testing Area (NA)
 				// PlNcL9TL = Sub-Testing Board (OCE)
 				// iGy1uadH = Testing Board (OCE)
-				if(['iGy1uadH','PlNcL9TL','tn3qAbc8','A7LBtoKc'].indexOf(appId) > -1){
+				if(['6heBIhQc','ElA0rvVL','iGy1uadH','PlNcL9TL','tn3qAbc8'].indexOf(appId) > -1){
 					currentItem.find('.riot-commented').append(`<a href=\'/f/${appId}/d/${discId}?comment=${pinned}\' class=\'dtb-fist opaque\'>&nbsp;</a>`);
 				}
 			}
@@ -319,6 +349,7 @@
 	}
 	
 	function applyRioterProfile(title,currentItem){
+		title = JSON.parse(title).title;
 		if (title !== 'undefined'){
 			currentItem.parents('.byline:not(.discussion-footer)').find(".inline-profile:first").after(`<span class='tags crioter'>${title}</span>`);
 		}
@@ -438,11 +469,12 @@
 		} else if(callback.name === 'applyRioterProfile'){
 			APIresponse = JSON.parse(APIresponse).user;
 			if(APIresponse.profile){
-				APIresponse = APIresponse.profile.data.title;
+				let title = APIresponse.profile.data.title;
+				APIresponse = `{"title": "${title}"}`;
 			} else {
-				APIresponse = undefined;
+				APIresponse = `{"title": "undefined"}`;
 			}
-		} else if(callback.name === 'applyThreadFlare'){
+		} else if(callback.name === 'applyThreadFlare' || callback.name === 'archiveMsg'){
 			APIresponse = JSON.parse(APIresponse);
 			var pinned = APIresponse.discussion.content.pinned;
 			var commentEnabled = APIresponse.discussion.commentCreationEnabled;
@@ -462,11 +494,6 @@
 			APIresponse['expire'] = expireTime;
 			APIresponse = JSON.stringify(APIresponse);
 			localStorage.setItem(`${region}${lang}_${itemKey}`,APIresponse);
-			/*if (!localStorage.getItem(`${region}${lang}_${itemKey}`)) {
-				localStorage.setItem(`${region}${lang}_${itemKey}`,APIresponse);
-			} else if({
-				localStorage.setItem(`${region}${lang}_${itemKey}`,APIresponse);
-			}*/
 		}
 		callback(APIresponse,currentItem);
 		//CORSrequest(requestURI,applyRioterProfile,apolloID,currentItem);
@@ -485,7 +512,10 @@
 	
 	if(isBoardIndex){
 		IndexVoting();
+	} else {
+		ThreadVoting();
 	}
+	
 	if(isChronoView){
 		commentParent();
 	}
@@ -509,10 +539,6 @@
 		pullUserGroups(); // We'll need to utilize API call and not use API response caching.
 	}
 	
-	$(function(){
-		archivedThread();
-	});
-	
 	// Mutation Observer as page loads
 	var body = document.getElementsByTagName('body')[0];
 	var observer = new MutationObserver(function(mutations){
@@ -524,6 +550,8 @@
 				if(isBoardIndex){
 					IndexVoting();
 					boardIndexFlares();
+				} else {
+					ThreadVoting();
 				}
 				if(isChronoView){
 					commentParent();
@@ -546,6 +574,8 @@
 			}
 			if(isBoardIndex){
 				IndexVoting();
+			} else {
+				ThreadVoting();
 			}
 			if(isChronoView){
 				commentParent();
@@ -558,6 +588,36 @@
 		setTimeout(function() {
 			clearInterval(intervalID);
 		}, 5000);
+	}
+	function ThreadVoting(){
+		$('#page-main').find('.voting.riot-apollo:not(.cm)').each(function(){
+			this.className += ' cm';
+			$this = $(this);
+			let upVotes = $this.attr('data-apollo-up-votes');
+			let downVotes = $this.attr('data-apollo-down-votes');
+			if(upVotes > 999){
+				upVotes = (upVotes/1000).toFixed(1) + 'k';
+			}
+			if(downVotes > 999){
+				downVotes = (downVotes/1000).toFixed(1) + 'k';
+			}
+			$this.find('.total-votes').before(`<li id='vote-breakdown' style='display:none'><span style='color:#22b722'>${upVotes}</span> | <span style='color:#fd3b3b'>${downVotes}</span></li>`);
+			$('.riot-apollo.voting').hover(function(){
+				$(this)
+					.find('#vote-breakdown')
+						.css('display','block')
+					.end()
+					.find('.total-votes')
+						.css('display','none');
+			}, function(){
+				$(this)
+					.find('#vote-breakdown')
+						.css('display','none')
+					.end()
+					.find('.total-votes')
+						.css('display','block');
+			});
+		});
 	}
 	
 	function IndexVoting(){
@@ -602,12 +662,32 @@
 				if(totalVotes > 999 || totalVotes < -999){
 					totalVotes = (totalVotes/1000).toFixed(1) + 'k';
 				}
-				$this.html(`<div class=\'riot-apollo voting\'><ul class=\'riot-voting\'><li></li><li class=\'total-votes\' style=\'color:${color}\'>${totalVotes}</li><li></li><li>${suffix}</li></ul></div>`);
+				if(upVotes > 999){
+					upVotes = (upVotes/1000).toFixed(1) + 'k';
+				}
+				if(downVotes > 999){
+					downVotes = (downVotes/1000).toFixed(1) + 'k';
+				}
+				$this.html(`<div class=\'riot-apollo voting\'><ul class=\'riot-voting\'><li></li><li id='vote-breakdown' style='display:none'><span style='color:#22b722'>${upVotes}</span> | <span style='color:#fd3b3b'>${downVotes}</span></li><li id='vote-total' class=\'total-votes\' style=\'color:${color}\'>${totalVotes}</li><li></li><li>${suffix}</li></ul></div>`);
 			}
-			
+		});
+		$('.riot-apollo.voting').hover(function(){
+			$(this)
+				.find('#vote-breakdown')
+					.css('display','block')
+				.end()
+				.find('#vote-total')
+					.css('display','none');
+		}, function(){
+			$(this)
+				.find('#vote-breakdown')
+					.css('display','none')
+				.end()
+				.find('#vote-total')
+					.css('display','block');
 		});
 	}
-
+	
 	function commentParent(){
 		var thread = $('#discussion').find('li.view-in-mod-tool a').attr('href').split('/');
 		var appId = thread[4];
@@ -674,6 +754,12 @@
 		CORSrequest(requestURI,renderComment,itemKey,currentItem);
 	}
 		
+	$(function(){
+		if(!isBoardIndex && createLink){
+			archivedThread();
+		}
+	});		
+	
 	// Mozilla's Feature-detecting Storage function
 	// From: https://developer.mozilla.org/en-US/docs/Web/API/Web_Storage_API/Using_the_Web_Storage_API
 	function storageAvailable(type) {

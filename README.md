@@ -1,7 +1,9 @@
 Boards Revamp Project
 =================
-My journey into JavaScript began in 2016, by creating relatively simple dynamic and styled posts on the League of Legends Boards. Over the next few years, my time within the League of Legends community and with the Riot Games Volunteer Program allowed me an opportunity to spaghetti code my way into self-studying jQuery, Vanilla JavaScript, and then a workable understanding of ReactJS, ExpressJS, NodeJS, PostgreSQL, and a number of other neat technologies.\
-\
+My journey into JavaScript began in 2016, by creating relatively simple dynamic and styled posts on the League of Legends Boards. Over the next few years, my time within the League of Legends community and with the Riot Games Volunteer Program allowed me an opportunity to spaghetti code my way into self-studying jQuery, Vanilla JavaScript, and then a workable understanding of ReactJS, ExpressJS, NodeJS, PostgreSQL, and a number of other neat technologies.
+________________________
+![League of Legends Boards](https://i.imgur.com/by5EEAH.jpg)
+________________________
 The purpose of this repo isn't to show off the most efficient or attractive code (I can tell you that you won't find that here); instead, hopefully this repo will show you a small part of my early exploration into what were then new and foreign concepts to me, and more importantly the fostering of a long-lasting passion of JavaScript and web development.
 
 ## And for posterity, some of the crazy things & milestones that led up to this point:
